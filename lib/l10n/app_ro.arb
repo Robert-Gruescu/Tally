@@ -1,0 +1,123 @@
+{
+  "@@locale": "ro",
+  "appTitle": "Tally",
+  "navHome": "Acasă",
+  "navStats": "Statistici",
+  "navSettings": "Setări",
+  "periodDay": "Azi",
+  "periodWeek": "Săptămâna",
+  "periodMonth": "Luna",
+  "balance": "Sold",
+  "income": "Venituri",
+  "expenses": "Cheltuieli",
+  "lastSevenDays": "Ultimele 7 zile",
+  "recentTransactions": "Tranzacții recente",
+  "seeAll": "Vezi tot",
+  "addExpense": "Cheltuială",
+  "addIncome": "Venit",
+  "amount": "Sumă",
+  "category": "Categorie",
+  "noteOptional": "Notă (opțional)",
+  "date": "Data",
+  "today": "Azi",
+  "yesterday": "Ieri",
+  "save": "Salvează",
+  "cancel": "Anulează",
+  "delete": "Șterge",
+  "savedExpense": "Cheltuială salvată",
+  "savedIncome": "Venit salvat",
+  "deleted": "Tranzacție ștearsă",
+  "undo": "Anulează",
+  "errorAmountRequired": "Introdu o sumă",
+  "errorAmountInvalid": "Suma nu este validă",
+  "errorCategoryRequired": "Alege o categorie",
+  "emptyTransactionsTitle": "Nicio tranzacție încă",
+  "emptyTransactionsBody": "Apasă butonul de mai jos ca să adaugi prima cheltuială.",
+  "emptyChartBody": "Adaugă câteva cheltuieli ca să vezi tendința.",
+  "spentThisPeriod": "Cheltuit",
+  "dailyAverage": "Medie pe zi",
+  "topCategory": "Categoria principală",
+  "comparedToPrevious": "{percent}% față de perioada anterioară",
+  "@comparedToPrevious": {
+    "placeholders": {
+      "percent": {
+        "type": "String"
+      }
+    }
+  },
+  "quickAmounts": "Sume folosite recent",
+  "periodNameDay": "azi",
+  "periodNameWeek": "săptămâna aceasta",
+  "periodNameMonth": "luna aceasta",
+  "balanceIn": "Sold {period}",
+  "@balanceIn": {
+    "placeholders": {
+      "period": {
+        "type": "String"
+      }
+    }
+  },
+  "spentIn": "Cheltuit {period}",
+  "@spentIn": {
+    "placeholders": {
+      "period": {
+        "type": "String"
+      }
+    }
+  },
+  "transactions": "Tranzacții",
+  "topCategoryShare": "{percent}% din cheltuieli",
+  "@topCategoryShare": {
+    "placeholders": {
+      "percent": {
+        "type": "String"
+      }
+    }
+  },
+  "dailyAverageValue": "{amount} pe zi în medie",
+  "@dailyAverageValue": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "editTransaction": "Modifică",
+  "savedChanges": "Modificare salvată",
+  "sectionData": "Date",
+  "sectionApp": "Aplicație",
+  "currency": "Monedă",
+  "exportCsv": "Exportă în CSV",
+  "exportCsvSub": "Pentru Excel sau Google Sheets",
+  "exportBackup": "Backup complet",
+  "exportBackupSub": "Un fișier din care poți reface tot",
+  "restoreBackup": "Restaurează dintr-un backup",
+  "restoreBackupSub": "Înlocuiește toate datele de acum",
+  "nothingToExport": "Nu ai nicio tranzacție de exportat.",
+  "shareExportTitle": "Cheltuielile mele",
+  "restoreConfirmTitle": "Înlocuiești toate datele?",
+  "restoreConfirmBody": "Tot ce ai acum va fi șters și înlocuit cu ce se află în backup. Fă întâi un backup al datelor actuale dacă vrei să le păstrezi.",
+  "restoreAction": "Restaurează",
+  "wipeTitle": "Șterge toate tranzacțiile",
+  "wipeSub": "Categoriile rămân neschimbate",
+  "wipeConfirmTitle": "Ștergi toate tranzacțiile?",
+  "wipeConfirmBody": "Toate veniturile și cheltuielile vor fi șterse definitiv. Această acțiune nu poate fi anulată.",
+  "wipeDone": "Toate tranzacțiile au fost șterse",
+  "appVersion": "Versiunea {version}",
+  "privacyNote": "Datele tale rămân doar pe acest telefon. Nu există cont și nimic nu se trimite pe internet.",
+  "@appVersion": {
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
+  "restoreDone": "{count, plural, =1{O tranzacție restaurată} other{{count} tranzacții restaurate}}",
+  "@restoreDone": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  }
+}

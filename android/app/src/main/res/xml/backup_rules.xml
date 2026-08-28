@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Android 11 și mai vechi. Ce urcă în contul Google al utilizatorului.
+
+  Odată ce există un singur <include>, restul e exclus implicit. Asta e
+  intenția: baza de date are 20 KB, dar folderul aplicației poate ajunge la
+  zeci de megabytes (în debug, Flutter își extrage acolo asset-urile), iar
+  cota de backup e 25 MB. Fără regulile astea, backupul eșuează în tăcere.
+-->
+<full-backup-content>
+    <include domain="root" path="app_flutter/tally.sqlite" />
+    <include domain="sharedpref" path="." />
+</full-backup-content>

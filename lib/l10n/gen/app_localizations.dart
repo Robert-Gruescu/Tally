@@ -1,0 +1,554 @@
+import 'dart:async';
+
+import 'package:flutter/foundation.dart';
+import 'package:flutter/widgets.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:intl/intl.dart' as intl;
+
+import 'app_localizations_ro.dart';
+
+// ignore_for_file: type=lint
+
+/// Callers can lookup localized strings with an instance of AppLocalizations
+/// returned by `AppLocalizations.of(context)`.
+///
+/// Applications need to include `AppLocalizations.delegate()` in their app's
+/// `localizationDelegates` list, and the locales they support in the app's
+/// `supportedLocales` list. For example:
+///
+/// ```dart
+/// import 'gen/app_localizations.dart';
+///
+/// return MaterialApp(
+///   localizationsDelegates: AppLocalizations.localizationsDelegates,
+///   supportedLocales: AppLocalizations.supportedLocales,
+///   home: MyApplicationHome(),
+/// );
+/// ```
+///
+/// ## Update pubspec.yaml
+///
+/// Please make sure to update your pubspec.yaml to include the following
+/// packages:
+///
+/// ```yaml
+/// dependencies:
+///   # Internationalization support.
+///   flutter_localizations:
+///     sdk: flutter
+///   intl: any # Use the pinned version from flutter_localizations
+///
+///   # Rest of dependencies
+/// ```
+///
+/// ## iOS Applications
+///
+/// iOS applications define key application metadata, including supported
+/// locales, in an Info.plist file that is built into the application bundle.
+/// To configure the locales supported by your app, you’ll need to edit this
+/// file.
+///
+/// First, open your project’s ios/Runner.xcworkspace Xcode workspace file.
+/// Then, in the Project Navigator, open the Info.plist file under the Runner
+/// project’s Runner folder.
+///
+/// Next, select the Information Property List item, select Add Item from the
+/// Editor menu, then select Localizations from the pop-up menu.
+///
+/// Select and expand the newly-created Localizations item then, for each
+/// locale your application supports, add a new item and select the locale
+/// you wish to add from the pop-up menu in the Value field. This list should
+/// be consistent with the languages listed in the AppLocalizations.supportedLocales
+/// property.
+abstract class AppLocalizations {
+  AppLocalizations(String locale)
+    : localeName = intl.Intl.canonicalizedLocale(locale.toString());
+
+  final String localeName;
+
+  static AppLocalizations of(BuildContext context) {
+    return Localizations.of<AppLocalizations>(context, AppLocalizations)!;
+  }
+
+  static const LocalizationsDelegate<AppLocalizations> delegate =
+      _AppLocalizationsDelegate();
+
+  /// A list of this localizations delegate along with the default localizations
+  /// delegates.
+  ///
+  /// Returns a list of localizations delegates containing this delegate along with
+  /// GlobalMaterialLocalizations.delegate, GlobalCupertinoLocalizations.delegate,
+  /// and GlobalWidgetsLocalizations.delegate.
+  ///
+  /// Additional delegates can be added by appending to this list in
+  /// MaterialApp. This list does not have to be used at all if a custom list
+  /// of delegates is preferred or required.
+  static const List<LocalizationsDelegate<dynamic>> localizationsDelegates =
+      <LocalizationsDelegate<dynamic>>[
+        delegate,
+        GlobalMaterialLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+      ];
+
+  /// A list of this localizations delegate's supported locales.
+  static const List<Locale> supportedLocales = <Locale>[Locale('ro')];
+
+  /// No description provided for @appTitle.
+  ///
+  /// In ro, this message translates to:
+  /// **'Tally'**
+  String get appTitle;
+
+  /// No description provided for @navHome.
+  ///
+  /// In ro, this message translates to:
+  /// **'Acasă'**
+  String get navHome;
+
+  /// No description provided for @navStats.
+  ///
+  /// In ro, this message translates to:
+  /// **'Statistici'**
+  String get navStats;
+
+  /// No description provided for @navSettings.
+  ///
+  /// In ro, this message translates to:
+  /// **'Setări'**
+  String get navSettings;
+
+  /// No description provided for @periodDay.
+  ///
+  /// In ro, this message translates to:
+  /// **'Azi'**
+  String get periodDay;
+
+  /// No description provided for @periodWeek.
+  ///
+  /// In ro, this message translates to:
+  /// **'Săptămâna'**
+  String get periodWeek;
+
+  /// No description provided for @periodMonth.
+  ///
+  /// In ro, this message translates to:
+  /// **'Luna'**
+  String get periodMonth;
+
+  /// No description provided for @balance.
+  ///
+  /// In ro, this message translates to:
+  /// **'Sold'**
+  String get balance;
+
+  /// No description provided for @income.
+  ///
+  /// In ro, this message translates to:
+  /// **'Venituri'**
+  String get income;
+
+  /// No description provided for @expenses.
+  ///
+  /// In ro, this message translates to:
+  /// **'Cheltuieli'**
+  String get expenses;
+
+  /// No description provided for @lastSevenDays.
+  ///
+  /// In ro, this message translates to:
+  /// **'Ultimele 7 zile'**
+  String get lastSevenDays;
+
+  /// No description provided for @recentTransactions.
+  ///
+  /// In ro, this message translates to:
+  /// **'Tranzacții recente'**
+  String get recentTransactions;
+
+  /// No description provided for @seeAll.
+  ///
+  /// In ro, this message translates to:
+  /// **'Vezi tot'**
+  String get seeAll;
+
+  /// No description provided for @addExpense.
+  ///
+  /// In ro, this message translates to:
+  /// **'Cheltuială'**
+  String get addExpense;
+
+  /// No description provided for @addIncome.
+  ///
+  /// In ro, this message translates to:
+  /// **'Venit'**
+  String get addIncome;
+
+  /// No description provided for @amount.
+  ///
+  /// In ro, this message translates to:
+  /// **'Sumă'**
+  String get amount;
+
+  /// No description provided for @category.
+  ///
+  /// In ro, this message translates to:
+  /// **'Categorie'**
+  String get category;
+
+  /// No description provided for @noteOptional.
+  ///
+  /// In ro, this message translates to:
+  /// **'Notă (opțional)'**
+  String get noteOptional;
+
+  /// No description provided for @date.
+  ///
+  /// In ro, this message translates to:
+  /// **'Data'**
+  String get date;
+
+  /// No description provided for @today.
+  ///
+  /// In ro, this message translates to:
+  /// **'Azi'**
+  String get today;
+
+  /// No description provided for @yesterday.
+  ///
+  /// In ro, this message translates to:
+  /// **'Ieri'**
+  String get yesterday;
+
+  /// No description provided for @save.
+  ///
+  /// In ro, this message translates to:
+  /// **'Salvează'**
+  String get save;
+
+  /// No description provided for @cancel.
+  ///
+  /// In ro, this message translates to:
+  /// **'Anulează'**
+  String get cancel;
+
+  /// No description provided for @delete.
+  ///
+  /// In ro, this message translates to:
+  /// **'Șterge'**
+  String get delete;
+
+  /// No description provided for @savedExpense.
+  ///
+  /// In ro, this message translates to:
+  /// **'Cheltuială salvată'**
+  String get savedExpense;
+
+  /// No description provided for @savedIncome.
+  ///
+  /// In ro, this message translates to:
+  /// **'Venit salvat'**
+  String get savedIncome;
+
+  /// No description provided for @deleted.
+  ///
+  /// In ro, this message translates to:
+  /// **'Tranzacție ștearsă'**
+  String get deleted;
+
+  /// No description provided for @undo.
+  ///
+  /// In ro, this message translates to:
+  /// **'Anulează'**
+  String get undo;
+
+  /// No description provided for @errorAmountRequired.
+  ///
+  /// In ro, this message translates to:
+  /// **'Introdu o sumă'**
+  String get errorAmountRequired;
+
+  /// No description provided for @errorAmountInvalid.
+  ///
+  /// In ro, this message translates to:
+  /// **'Suma nu este validă'**
+  String get errorAmountInvalid;
+
+  /// No description provided for @errorCategoryRequired.
+  ///
+  /// In ro, this message translates to:
+  /// **'Alege o categorie'**
+  String get errorCategoryRequired;
+
+  /// No description provided for @emptyTransactionsTitle.
+  ///
+  /// In ro, this message translates to:
+  /// **'Nicio tranzacție încă'**
+  String get emptyTransactionsTitle;
+
+  /// No description provided for @emptyTransactionsBody.
+  ///
+  /// In ro, this message translates to:
+  /// **'Apasă butonul de mai jos ca să adaugi prima cheltuială.'**
+  String get emptyTransactionsBody;
+
+  /// No description provided for @emptyChartBody.
+  ///
+  /// In ro, this message translates to:
+  /// **'Adaugă câteva cheltuieli ca să vezi tendința.'**
+  String get emptyChartBody;
+
+  /// No description provided for @spentThisPeriod.
+  ///
+  /// In ro, this message translates to:
+  /// **'Cheltuit'**
+  String get spentThisPeriod;
+
+  /// No description provided for @dailyAverage.
+  ///
+  /// In ro, this message translates to:
+  /// **'Medie pe zi'**
+  String get dailyAverage;
+
+  /// No description provided for @topCategory.
+  ///
+  /// In ro, this message translates to:
+  /// **'Categoria principală'**
+  String get topCategory;
+
+  /// No description provided for @comparedToPrevious.
+  ///
+  /// In ro, this message translates to:
+  /// **'{percent}% față de perioada anterioară'**
+  String comparedToPrevious(String percent);
+
+  /// No description provided for @quickAmounts.
+  ///
+  /// In ro, this message translates to:
+  /// **'Sume folosite recent'**
+  String get quickAmounts;
+
+  /// No description provided for @periodNameDay.
+  ///
+  /// In ro, this message translates to:
+  /// **'azi'**
+  String get periodNameDay;
+
+  /// No description provided for @periodNameWeek.
+  ///
+  /// In ro, this message translates to:
+  /// **'săptămâna aceasta'**
+  String get periodNameWeek;
+
+  /// No description provided for @periodNameMonth.
+  ///
+  /// In ro, this message translates to:
+  /// **'luna aceasta'**
+  String get periodNameMonth;
+
+  /// No description provided for @balanceIn.
+  ///
+  /// In ro, this message translates to:
+  /// **'Sold {period}'**
+  String balanceIn(String period);
+
+  /// No description provided for @spentIn.
+  ///
+  /// In ro, this message translates to:
+  /// **'Cheltuit {period}'**
+  String spentIn(String period);
+
+  /// No description provided for @transactions.
+  ///
+  /// In ro, this message translates to:
+  /// **'Tranzacții'**
+  String get transactions;
+
+  /// No description provided for @topCategoryShare.
+  ///
+  /// In ro, this message translates to:
+  /// **'{percent}% din cheltuieli'**
+  String topCategoryShare(String percent);
+
+  /// No description provided for @dailyAverageValue.
+  ///
+  /// In ro, this message translates to:
+  /// **'{amount} pe zi în medie'**
+  String dailyAverageValue(String amount);
+
+  /// No description provided for @editTransaction.
+  ///
+  /// In ro, this message translates to:
+  /// **'Modifică'**
+  String get editTransaction;
+
+  /// No description provided for @savedChanges.
+  ///
+  /// In ro, this message translates to:
+  /// **'Modificare salvată'**
+  String get savedChanges;
+
+  /// No description provided for @sectionData.
+  ///
+  /// In ro, this message translates to:
+  /// **'Date'**
+  String get sectionData;
+
+  /// No description provided for @sectionApp.
+  ///
+  /// In ro, this message translates to:
+  /// **'Aplicație'**
+  String get sectionApp;
+
+  /// No description provided for @currency.
+  ///
+  /// In ro, this message translates to:
+  /// **'Monedă'**
+  String get currency;
+
+  /// No description provided for @exportCsv.
+  ///
+  /// In ro, this message translates to:
+  /// **'Exportă în CSV'**
+  String get exportCsv;
+
+  /// No description provided for @exportCsvSub.
+  ///
+  /// In ro, this message translates to:
+  /// **'Pentru Excel sau Google Sheets'**
+  String get exportCsvSub;
+
+  /// No description provided for @exportBackup.
+  ///
+  /// In ro, this message translates to:
+  /// **'Backup complet'**
+  String get exportBackup;
+
+  /// No description provided for @exportBackupSub.
+  ///
+  /// In ro, this message translates to:
+  /// **'Un fișier din care poți reface tot'**
+  String get exportBackupSub;
+
+  /// No description provided for @restoreBackup.
+  ///
+  /// In ro, this message translates to:
+  /// **'Restaurează dintr-un backup'**
+  String get restoreBackup;
+
+  /// No description provided for @restoreBackupSub.
+  ///
+  /// In ro, this message translates to:
+  /// **'Înlocuiește toate datele de acum'**
+  String get restoreBackupSub;
+
+  /// No description provided for @nothingToExport.
+  ///
+  /// In ro, this message translates to:
+  /// **'Nu ai nicio tranzacție de exportat.'**
+  String get nothingToExport;
+
+  /// No description provided for @shareExportTitle.
+  ///
+  /// In ro, this message translates to:
+  /// **'Cheltuielile mele'**
+  String get shareExportTitle;
+
+  /// No description provided for @restoreConfirmTitle.
+  ///
+  /// In ro, this message translates to:
+  /// **'Înlocuiești toate datele?'**
+  String get restoreConfirmTitle;
+
+  /// No description provided for @restoreConfirmBody.
+  ///
+  /// In ro, this message translates to:
+  /// **'Tot ce ai acum va fi șters și înlocuit cu ce se află în backup. Fă întâi un backup al datelor actuale dacă vrei să le păstrezi.'**
+  String get restoreConfirmBody;
+
+  /// No description provided for @restoreAction.
+  ///
+  /// In ro, this message translates to:
+  /// **'Restaurează'**
+  String get restoreAction;
+
+  /// No description provided for @wipeTitle.
+  ///
+  /// In ro, this message translates to:
+  /// **'Șterge toate tranzacțiile'**
+  String get wipeTitle;
+
+  /// No description provided for @wipeSub.
+  ///
+  /// In ro, this message translates to:
+  /// **'Categoriile rămân neschimbate'**
+  String get wipeSub;
+
+  /// No description provided for @wipeConfirmTitle.
+  ///
+  /// In ro, this message translates to:
+  /// **'Ștergi toate tranzacțiile?'**
+  String get wipeConfirmTitle;
+
+  /// No description provided for @wipeConfirmBody.
+  ///
+  /// In ro, this message translates to:
+  /// **'Toate veniturile și cheltuielile vor fi șterse definitiv. Această acțiune nu poate fi anulată.'**
+  String get wipeConfirmBody;
+
+  /// No description provided for @wipeDone.
+  ///
+  /// In ro, this message translates to:
+  /// **'Toate tranzacțiile au fost șterse'**
+  String get wipeDone;
+
+  /// No description provided for @appVersion.
+  ///
+  /// In ro, this message translates to:
+  /// **'Versiunea {version}'**
+  String appVersion(String version);
+
+  /// No description provided for @privacyNote.
+  ///
+  /// In ro, this message translates to:
+  /// **'Datele tale rămân doar pe acest telefon. Nu există cont și nimic nu se trimite pe internet.'**
+  String get privacyNote;
+
+  /// No description provided for @restoreDone.
+  ///
+  /// In ro, this message translates to:
+  /// **'{count, plural, =1{O tranzacție restaurată} other{{count} tranzacții restaurate}}'**
+  String restoreDone(int count);
+}
+
+class _AppLocalizationsDelegate
+    extends LocalizationsDelegate<AppLocalizations> {
+  const _AppLocalizationsDelegate();
+
+  @override
+  Future<AppLocalizations> load(Locale locale) {
+    return SynchronousFuture<AppLocalizations>(lookupAppLocalizations(locale));
+  }
+
+  @override
+  bool isSupported(Locale locale) =>
+      <String>['ro'].contains(locale.languageCode);
+
+  @override
+  bool shouldReload(_AppLocalizationsDelegate old) => false;
+}
+
+AppLocalizations lookupAppLocalizations(Locale locale) {
+  // Lookup logic when only language code is specified.
+  switch (locale.languageCode) {
+    case 'ro':
+      return AppLocalizationsRo();
+  }
+
+  throw FlutterError(
+    'AppLocalizations.delegate failed to load unsupported locale "$locale". This is likely '
+    'an issue with the localizations generation tool. Please file an issue '
+    'on GitHub with a reproducible sample app and the gen-l10n configuration '
+    'that was used.',
+  );
+}
