@@ -7,7 +7,10 @@ import 'package:intl/intl.dart';
 import '../../core/category_icons.dart';
 import '../../core/db/database.dart';
 import '../../core/money.dart';
+import '../../core/recurrence.dart';
+import '../../core/recurrence_service.dart';
 import '../../core/theme.dart';
+import '../../core/widgets/day_of_month_picker.dart';
 import '../../l10n/gen/app_localizations.dart';
 import '../../providers.dart';
 
@@ -61,6 +64,12 @@ class _AddTransactionSheetState extends ConsumerState<AddTransactionSheet> {
   String? _error;
   List<int> _recentAmounts = const [];
   bool _saving = false;
+
+  /// Set from inside the sheet rather than from Settings: the moment
+  /// someone knows a payment repeats is the moment they are entering it.
+  bool _repeats = false;
+  late int _repeatDay = DateTime.now().day;
+  bool _repeatDayTouched = false;
 
   bool get _isEditing => widget.existing != null;
 
@@ -127,13 +136,18 @@ class _AddTransactionSheetState extends ConsumerState<AddTransactionSheet> {
       locale: const Locale('ro'),
     );
     if (picked != null) {
-      setState(() => _date = DateTime(
-            picked.year,
-            picked.month,
-            picked.day,
-            _date.hour,
-            _date.minute,
-          ));
+      setState(() {
+        _date = DateTime(
+          picked.year,
+          picked.month,
+          picked.day,
+          _date.hour,
+          _date.minute,
+        );
+        // The repeat day trails the transaction date until the user picks one
+        // deliberately: a salary entered for the 5th repeats on the 5th.
+        if (!_repeatDayTouched) _repeatDay = picked.day;
+      });
     }
   }
 
@@ -189,6 +203,22 @@ class _AddTransactionSheetState extends ConsumerState<AddTransactionSheet> {
           spentAt: _date,
         ),
       );
+
+      if (_repeats) {
+        await db.insertRule(RecurringRulesCompanion.insert(
+          amountMinor: minor,
+          kind: _kind,
+          categoryId: categoryId,
+          note: noteValue,
+          dayOfMonth: _repeatDay,
+          // The day after this transaction, so the rule never asks about the
+          // occurrence just entered by hand. A later day in the same month is
+          // still caught: entering a receipt on the 3rd and setting the 25th
+          // asks about the 25th of this month.
+          startsOn: DateTime(_date.year, _date.month, _date.day + 1),
+        ));
+        await RecurrenceService.materialize(db);
+      }
     }
 
     HapticFeedback.mediumImpact();
@@ -200,9 +230,11 @@ class _AddTransactionSheetState extends ConsumerState<AddTransactionSheet> {
         content: Text(
           _isEditing
               ? l10n.savedChanges
-              : _kind == TxKind.expense
-                  ? l10n.savedExpense
-                  : l10n.savedIncome,
+              : _repeats
+                  ? l10n.savedWithRule
+                  : _kind == TxKind.expense
+                      ? l10n.savedExpense
+                      : l10n.savedIncome,
         ),
         duration: const Duration(seconds: 2),
       ),
@@ -300,6 +332,24 @@ class _AddTransactionSheetState extends ConsumerState<AddTransactionSheet> {
                   _DateChip(date: _date, onTap: _pickDate, l10n: l10n),
                 ],
               ),
+              // Editing is deliberately excluded: turning an existing row
+              // into a rule raises questions about the months before it, and
+              // that answer belongs on the rules screen, not here.
+              if (!_isEditing) ...[
+                const SizedBox(height: 8),
+                _RepeatToggle(
+                  value: _repeats,
+                  day: _repeatDay,
+                  onChanged: (v) {
+                    HapticFeedback.selectionClick();
+                    setState(() => _repeats = v);
+                  },
+                  onDayChanged: (d) => setState(() {
+                    _repeatDay = d;
+                    _repeatDayTouched = true;
+                  }),
+                ),
+              ],
               if (_error != null) ...[
                 const SizedBox(height: 14),
                 Text(
@@ -648,6 +698,96 @@ class _DateChip extends StatelessWidget {
       avatar: const Icon(Icons.calendar_today_rounded, size: 15),
       label: Text(label),
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 12),
+    );
+  }
+}
+
+
+/// The "this happens every month" switch, with the day revealed only once it
+/// is turned on.
+///
+/// Collapsed by default because most transactions are one-offs; an always-open
+/// day strip would push the save button off a small screen for the common case.
+class _RepeatToggle extends StatelessWidget {
+  const _RepeatToggle({
+    required this.value,
+    required this.day,
+    required this.onChanged,
+    required this.onDayChanged,
+  });
+
+  final bool value;
+  final int day;
+  final ValueChanged<bool> onChanged;
+  final ValueChanged<int> onDayChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final theme = Theme.of(context);
+    final money = theme.extension<MoneyColors>()!;
+
+    final dayLabel = day >= Recurrence.maxDay
+        ? l10n.lastDayOfMonth
+        : l10n.dayOfMonth(day);
+
+    return Container(
+      decoration: BoxDecoration(
+        border: Border.all(color: value ? money.muted : money.hairline),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Column(
+        children: [
+          InkWell(
+            onTap: () => onChanged(!value),
+            borderRadius: BorderRadius.circular(12),
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(14, 6, 8, 6),
+              child: Row(
+                children: [
+                  Icon(Icons.event_repeat_rounded, size: 19, color: money.muted),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          l10n.repeatsMonthly,
+                          style: theme.textTheme.bodyMedium
+                              ?.copyWith(fontWeight: FontWeight.w500),
+                        ),
+                        const SizedBox(height: 1),
+                        Text(
+                          value
+                              ? l10n.repeatsFromNextMonth(dayLabel)
+                              : l10n.repeatsMonthlyHint,
+                          style: theme.textTheme.bodySmall,
+                        ),
+                      ],
+                    ),
+                  ),
+                  Switch(value: value, onChanged: onChanged),
+                ],
+              ),
+            ),
+          ),
+          AnimatedSize(
+            duration: Motion.of(context, Motion.base),
+            curve: Motion.ease,
+            alignment: Alignment.topCenter,
+            child: value
+                ? Padding(
+                    padding: const EdgeInsets.fromLTRB(14, 0, 14, 14),
+                    child: DayOfMonthPicker(
+                      day: day,
+                      onChanged: onDayChanged,
+                      lastDayLabel: l10n.lastDayOfMonth,
+                    ),
+                  )
+                : const SizedBox(width: double.infinity),
+          ),
+        ],
+      ),
     );
   }
 }

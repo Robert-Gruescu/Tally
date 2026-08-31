@@ -244,4 +244,180 @@ class AppLocalizationsRo extends AppLocalizations {
     );
     return '$_temp0';
   }
+
+  @override
+  String get recurring => 'Plăți recurente';
+
+  @override
+  String get recurringSub => 'Salariu, abonamente, chirie';
+
+  @override
+  String get recurringEmptyTitle => 'Nicio plată recurentă';
+
+  @override
+  String get recurringEmptyBody =>
+      'Adaugă salariul sau un abonament și aplicația te va întreba, în ziua respectivă, dacă a intrat.';
+
+  @override
+  String get addRule => 'Adaugă';
+
+  @override
+  String get newRule => 'Plată recurentă nouă';
+
+  @override
+  String get ruleDay => 'În fiecare lună, în';
+
+  @override
+  String get rulePaused => 'Pe pauză';
+
+  @override
+  String get rulePauseAction => 'Pune pe pauză';
+
+  @override
+  String get ruleResumeAction => 'Reia';
+
+  @override
+  String get ruleSaved => 'Plată recurentă salvată';
+
+  @override
+  String get ruleDeleted => 'Plată recurentă ștearsă';
+
+  @override
+  String get ruleDeleteTitle => 'Ștergi plata recurentă?';
+
+  @override
+  String get ruleDeleteBody =>
+      'Nu vei mai fi întrebat despre ea. Tranzacțiile deja înregistrate rămân neatinse.';
+
+  @override
+  String get errorDayRequired => 'Alege o zi din lună';
+
+  @override
+  String get confirmYes => 'Da';
+
+  @override
+  String get confirmNo => 'Nu';
+
+  @override
+  String get occurrenceConfirmed => 'Adăugat';
+
+  @override
+  String get occurrenceSkipped => 'Sărit peste';
+
+  @override
+  String get lastDayOfMonth => 'ultima zi';
+
+  @override
+  String dayOfMonth(int day) {
+    return 'ziua $day';
+  }
+
+  @override
+  String pendingCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count de plăți de confirmat',
+      few: '$count plăți de confirmat',
+      one: 'O plată de confirmat',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get repeatsMonthly => 'Se repetă lunar';
+
+  @override
+  String get repeatsMonthlyHint =>
+      'Vei fi întrebat în fiecare lună dacă a intrat';
+
+  @override
+  String repeatsFromNextMonth(String day) {
+    return 'Din luna viitoare, în fiecare $day';
+  }
+
+  @override
+  String get savedWithRule => 'Salvat și setat ca lunar';
+
+  @override
+  String get autoBackup => 'Backup automat';
+
+  @override
+  String get autoBackupOn => 'Zilnic, pe telefon';
+
+  @override
+  String get autoBackupNever => 'Încă niciunul';
+
+  @override
+  String autoBackupLast(String when) {
+    return 'Ultimul: $when';
+  }
+
+  @override
+  String get autoBackupEmptyTitle => 'Niciun backup automat încă';
+
+  @override
+  String get autoBackupEmptyBody =>
+      'Se face unul pe zi, automat, prima dată când deschizi aplicația.';
+
+  @override
+  String get autoBackupNow => 'Fă unul acum';
+
+  @override
+  String get autoBackupDone => 'Backup făcut';
+
+  @override
+  String autoBackupCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count de tranzacții',
+      few: '$count tranzacții',
+      one: 'o tranzacție',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get autoBackupWarnTitle => 'Rămâne pe telefon';
+
+  @override
+  String get autoBackupWarnBody =>
+      'Backupurile automate te apără de ștergeri greșite, dar nu și de pierderea telefonului. Pentru asta, trimite-ți din când în când un backup complet pe mail sau pe Drive.';
+
+  @override
+  String get restoreFrom => 'Restaurează din acesta';
+
+  @override
+  String get periodToday => 'Azi';
+
+  @override
+  String get periodYesterday => 'Ieri';
+
+  @override
+  String get periodThisWeek => 'Săptămâna aceasta';
+
+  @override
+  String get periodLastWeek => 'Săptămâna trecută';
+
+  @override
+  String get periodThisMonth => 'Luna aceasta';
+
+  @override
+  String get periodLastMonth => 'Luna trecută';
+
+  @override
+  String get backToNow => 'Revino la azi';
+
+  @override
+  String get twelveMonths => 'Ultimele 12 luni';
+
+  @override
+  String get twelveMonthsSub => 'Apasă pe o lună ca s-o deschizi';
+
+  @override
+  String get monthlyAverage => 'Medie lunară';
+
+  @override
+  String get noHistoryYet => 'Prea puțin istoric pentru o comparație pe luni.';
 }

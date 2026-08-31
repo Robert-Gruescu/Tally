@@ -8,9 +8,11 @@ import '../../core/money.dart';
 import '../../core/period.dart';
 import '../../core/theme.dart';
 import '../../core/widgets/money_text.dart';
+import '../../core/widgets/period_navigator.dart';
 import '../../core/widgets/period_selector.dart';
 import '../../l10n/gen/app_localizations.dart';
 import '../../providers.dart';
+import 'monthly_chart.dart';
 
 class StatsScreen extends ConsumerWidget {
   const StatsScreen({super.key});
@@ -34,6 +36,8 @@ class StatsScreen extends ConsumerWidget {
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   const PeriodSelector(),
+                  const SizedBox(height: 4),
+                  const PeriodNavigator(),
                   const SizedBox(height: 32),
                   if (spent == 0)
                     _StatsEmpty(l10n: l10n)
@@ -59,6 +63,24 @@ class StatsScreen extends ConsumerWidget {
                 isLast: i == items.length - 1,
               ),
             ),
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(24, 40, 24, 0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Divider(
+                    color: Theme.of(context).extension<MoneyColors>()!.hairline,
+                    height: 1,
+                  ),
+                  const SizedBox(height: 32),
+                  // Below the fold on purpose: the period you chose comes
+                  // first, the year behind it second.
+                  const MonthlyChart(),
+                ],
+              ),
+            ),
+          ),
           const SliverToBoxAdapter(child: SizedBox(height: 120)),
         ],
       ),

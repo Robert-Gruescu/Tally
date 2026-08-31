@@ -119,5 +119,89 @@
         "type": "int"
       }
     }
-  }
+  },
+  "recurring": "Plăți recurente",
+  "recurringSub": "Salariu, abonamente, chirie",
+  "recurringEmptyTitle": "Nicio plată recurentă",
+  "recurringEmptyBody": "Adaugă salariul sau un abonament și aplicația te va întreba, în ziua respectivă, dacă a intrat.",
+  "addRule": "Adaugă",
+  "newRule": "Plată recurentă nouă",
+  "ruleDay": "În fiecare lună, în",
+  "rulePaused": "Pe pauză",
+  "rulePauseAction": "Pune pe pauză",
+  "ruleResumeAction": "Reia",
+  "ruleSaved": "Plată recurentă salvată",
+  "ruleDeleted": "Plată recurentă ștearsă",
+  "ruleDeleteTitle": "Ștergi plata recurentă?",
+  "ruleDeleteBody": "Nu vei mai fi întrebat despre ea. Tranzacțiile deja înregistrate rămân neatinse.",
+  "errorDayRequired": "Alege o zi din lună",
+  "confirmYes": "Da",
+  "confirmNo": "Nu",
+  "occurrenceConfirmed": "Adăugat",
+  "occurrenceSkipped": "Sărit peste",
+  "lastDayOfMonth": "ultima zi",
+  "dayOfMonth": "ziua {day}",
+  "@dayOfMonth": {
+    "placeholders": {
+      "day": {
+        "type": "int"
+      }
+    }
+  },
+  "pendingCount": "{count, plural, one{O plată de confirmat} few{{count} plăți de confirmat} other{{count} de plăți de confirmat}}",
+  "@pendingCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "repeatsMonthly": "Se repetă lunar",
+  "repeatsMonthlyHint": "Vei fi întrebat în fiecare lună dacă a intrat",
+  "repeatsFromNextMonth": "Din luna viitoare, în fiecare {day}",
+  "@repeatsFromNextMonth": {
+    "placeholders": {
+      "day": {
+        "type": "String"
+      }
+    }
+  },
+  "savedWithRule": "Salvat și setat ca lunar",
+  "autoBackup": "Backup automat",
+  "autoBackupOn": "Zilnic, pe telefon",
+  "autoBackupNever": "Încă niciunul",
+  "autoBackupLast": "Ultimul: {when}",
+  "autoBackupEmptyTitle": "Niciun backup automat încă",
+  "autoBackupEmptyBody": "Se face unul pe zi, automat, prima dată când deschizi aplicația.",
+  "autoBackupNow": "Fă unul acum",
+  "autoBackupDone": "Backup făcut",
+  "autoBackupCount": "{count, plural, one{o tranzacție} few{{count} tranzacții} other{{count} de tranzacții}}",
+  "autoBackupWarnTitle": "Rămâne pe telefon",
+  "autoBackupWarnBody": "Backupurile automate te apără de ștergeri greșite, dar nu și de pierderea telefonului. Pentru asta, trimite-ți din când în când un backup complet pe mail sau pe Drive.",
+  "restoreFrom": "Restaurează din acesta",
+  "@autoBackupLast": {
+    "placeholders": {
+      "when": {
+        "type": "String"
+      }
+    }
+  },
+  "@autoBackupCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "periodToday": "Azi",
+  "periodYesterday": "Ieri",
+  "periodThisWeek": "Săptămâna aceasta",
+  "periodLastWeek": "Săptămâna trecută",
+  "periodThisMonth": "Luna aceasta",
+  "periodLastMonth": "Luna trecută",
+  "backToNow": "Revino la azi",
+  "twelveMonths": "Ultimele 12 luni",
+  "twelveMonthsSub": "Apasă pe o lună ca s-o deschizi",
+  "monthlyAverage": "Medie lunară",
+  "noHistoryYet": "Prea puțin istoric pentru o comparație pe luni."
 }

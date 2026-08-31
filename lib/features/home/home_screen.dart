@@ -6,9 +6,11 @@ import '../../core/db/database.dart';
 import '../../core/period.dart';
 import '../../core/theme.dart';
 import '../../core/widgets/money_text.dart';
+import '../../core/widgets/period_navigator.dart';
 import '../../core/widgets/period_selector.dart';
 import '../../l10n/gen/app_localizations.dart';
 import '../../providers.dart';
+import '../recurring/pending_banner.dart';
 import '../transactions/add_transaction_sheet.dart';
 import '../transactions/transaction_tile.dart';
 import 'weekly_chart.dart';
@@ -95,7 +97,12 @@ class HomeScreen extends ConsumerWidget {
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   const PeriodSelector(),
-                  const SizedBox(height: 32),
+                  const SizedBox(height: 4),
+                  const PeriodNavigator(),
+                  const SizedBox(height: 28),
+                  // Above the balance on purpose: an unanswered question means
+                  // the number underneath is not yet the whole truth.
+                  const PendingBanner(),
                   const _BalanceBlock(),
                   const SizedBox(height: 32),
                   const WeeklyChart(),
@@ -151,11 +158,16 @@ class _BalanceBlock extends ConsumerWidget {
     final data = ref.watch(summaryProvider).valueOrNull ?? PeriodSummary.empty;
     final balance = data.balanceMinor;
 
-    final periodName = switch (period) {
-      Period.day => l10n.periodNameDay,
-      Period.week => l10n.periodNameWeek,
-      Period.month => l10n.periodNameMonth,
-    };
+    // A day picked from the chart renames the block, so the big number is
+    // never labelled "luna aceasta" while showing one Tuesday.
+    final picked = ref.watch(selectedDayProvider);
+    final periodName = picked != null
+        ? _dayName(context, picked)
+        : switch (period) {
+            Period.day => l10n.periodNameDay,
+            Period.week => l10n.periodNameWeek,
+            Period.month => l10n.periodNameMonth,
+          };
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -199,6 +211,18 @@ class _BalanceBlock extends ConsumerWidget {
       ],
     );
   }
+}
+
+/// "vineri, 29 aug", or the friendlier word when it is close enough to now.
+String _dayName(BuildContext context, DateTime day) {
+  final l10n = AppLocalizations.of(context);
+  final now = DateTime.now();
+  final today = DateTime(now.year, now.month, now.day);
+  final yesterday = DateTime(today.year, today.month, today.day - 1);
+
+  if (day == today) return l10n.periodNameDay;
+  if (day == yesterday) return l10n.yesterday.toLowerCase();
+  return DateFormat('EEEE, d MMM', 'ro_RO').format(day);
 }
 
 class _FlowStat extends StatelessWidget {

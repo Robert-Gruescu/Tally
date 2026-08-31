@@ -1,12 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'core/auto_backup.dart';
+import 'core/recurrence_service.dart';
 import 'core/theme.dart';
 import 'features/home/home_screen.dart';
 import 'features/settings/settings_screen.dart';
 import 'features/stats/stats_screen.dart';
 import 'features/transactions/add_transaction_sheet.dart';
 import 'l10n/gen/app_localizations.dart';
+import 'providers.dart';
 
 class TallyApp extends StatelessWidget {
   const TallyApp({super.key});
@@ -31,17 +35,50 @@ class TallyApp extends StatelessWidget {
   }
 }
 
-class RootShell extends StatefulWidget {
+class RootShell extends ConsumerStatefulWidget {
   const RootShell({super.key});
 
   @override
-  State<RootShell> createState() => _RootShellState();
+  ConsumerState<RootShell> createState() => _RootShellState();
 }
 
-class _RootShellState extends State<RootShell> {
+class _RootShellState extends ConsumerState<RootShell> {
   int _index = 0;
+  AppLifecycleListener? _lifecycle;
 
   static const _tabs = [HomeScreen(), StatsScreen(), SettingsScreen()];
+
+  @override
+  void initState() {
+    super.initState();
+    // Startup already generated what was due, but an app left open overnight
+    // would otherwise not notice that it is now the 5th. Regenerating on
+    // resume costs one query against a handful of rules.
+    _lifecycle = AppLifecycleListener(
+      onResume: () => RecurrenceService.materialize(ref.read(databaseProvider)),
+      // Also on the way out, not only on the way in. Startup alone would mean
+      // everything entered today waits until tomorrow's launch to be saved,
+      // and the day you actually need the snapshot is the day you did not
+      // reopen the app.
+      onHide: _snapshotIfDue,
+      onPause: _snapshotIfDue,
+    );
+  }
+
+  /// Guarded by the same 24 hour interval, so backgrounding the app twenty
+  /// times a day still writes at most one file.
+  void _snapshotIfDue() {
+    AutoBackup.runIfDue(
+      ref.read(databaseProvider),
+      ref.read(preferencesProvider),
+    );
+  }
+
+  @override
+  void dispose() {
+    _lifecycle?.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {

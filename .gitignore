@@ -44,10 +44,25 @@ app.*.map.json
 /android/app/profile
 /android/app/release
 
-# Documentație în Word: generată din pagina publicată, nu e sursă.
-# Un .docx e un zip binar, deci git nu poate face diff pe el și fiecare
-# regenerare ar intra ca fișier complet nou în istoric.
-/docs/*.docx
+# ---------------------------------------------------------------------------
+# Documentație
+#
+# Nimic din ce explică arhitectura nu intră în repository: nici documentul
+# Word, nici diagramele lui, nici scriptul care îl generează. Codul rămâne
+# singura sursă de adevăr despre cum funcționează aplicația, iar o explicație
+# versionată alături de el ajunge inevitabil să îl contrazică.
+#
+# Documentul se regenerează local:
+#   python docs/build_docx.py "docs/Tally-Arhitectura.docx"
+/docs/
+
+# Documente Word oriunde în proiect, chiar și în afara docs/.
+# Sunt arhive binare: git nu poate face diff pe ele, iar fiecare salvare ar
+# intra în istoric ca fișier complet nou.
+*.doc
+*.docx
+*.odt
+*.rtf
 
 # Fișierele de blocare pe care Word le lasă în urmă cât documentul e deschis.
-~$*.docx
+~$*

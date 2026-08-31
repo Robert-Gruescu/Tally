@@ -4,6 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:tally/core/backup.dart';
 import 'package:tally/core/db/database.dart';
 import 'package:tally/core/db/seed.dart';
+import 'package:tally/core/recurrence_service.dart';
 
 /// Backup is the one feature whose failure mode is losing a year of records.
 /// A restore that silently drops rows, or one that wipes the database before
@@ -150,6 +151,69 @@ void main() {
       final restored = (await db.allTransactions())
           .firstWhere((t) => t.amountMinor == 4250);
       expect(restored.spentAt, DateTime(2026, 3, 10, 13, 5));
+    });
+  });
+
+  group('recurring rules survive a backup', () {
+    Future<void> seedRule() async {
+      await db.insertRule(RecurringRulesCompanion.insert(
+        amountMinor: 500000,
+        kind: TxKind.income,
+        categoryId: salary,
+        dayOfMonth: 5,
+        startsOn: DateTime(2026, 1, 1),
+        note: const Value('salariu'),
+      ));
+      await RecurrenceService.materialize(db, now: DateTime(2026, 3, 10));
+    }
+
+    test('the rule itself comes back', () async {
+      await seedRule();
+      final json = await Backup.buildBackupJson(db);
+
+      await Backup.restoreFromJson(db, json);
+
+      final rules = await db.watchRules().first;
+      expect(rules, hasLength(1));
+      expect(rules.single.rule.amountMinor, 500000);
+      expect(rules.single.rule.dayOfMonth, 5);
+      expect(rules.single.rule.note, 'salariu');
+    });
+
+    test('answers already given are not asked again', () async {
+      await seedRule();
+      final pending = await db.watchPending().first;
+      expect(pending, hasLength(3));
+
+      await db.confirmOccurrence(pending[0].occurrence, pending[0].rule);
+      await db.skipOccurrence(pending[1].occurrence.id);
+      expect(await db.watchPending().first, hasLength(1));
+
+      final json = await Backup.buildBackupJson(db);
+      await Backup.restoreFromJson(db, json);
+
+      // The whole point of backing up occurrences: a restore must not reopen
+      // months the user has already settled.
+      expect(await db.watchPending().first, hasLength(1));
+      expect(await db.allTransactions(), hasLength(1));
+    });
+
+    test('a v1 backup still restores, just without rules', () async {
+      await seedRule();
+      // A file written before recurring rules existed.
+      const legacy = '{"app":"tally","version":1,"categories":[],'
+          '"transactions":[]}';
+
+      final summary = await Backup.restoreFromJson(db, legacy);
+
+      expect(summary.rules, 0);
+      expect(await db.watchRules().first, isEmpty);
+      expect(await db.watchPending().first, isEmpty);
+    });
+
+    test('the format version is stamped as 2', () async {
+      final json = await Backup.buildBackupJson(db);
+      expect(json, contains('"version": 2'));
     });
   });
 

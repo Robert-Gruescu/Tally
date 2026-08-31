@@ -19,8 +19,10 @@ class Backup {
   const Backup._();
 
   /// Bumped when the JSON shape changes. A restore refuses anything newer than
-  /// it understands rather than guessing.
-  static const formatVersion = 1;
+  /// it understands rather than guessing, and still reads every older one.
+  ///
+  /// v2 added recurring rules and the answers already given about them.
+  static const formatVersion = 2;
 
   static const _appTag = 'tally';
 
@@ -102,6 +104,32 @@ class Backup {
             'colorValue': c.colorValue,
             'sortOrder': c.sortOrder,
             'isArchived': c.isArchived,
+          },
+      ],
+      'recurringRules': [
+        for (final r in await db.allRules())
+          {
+            'id': r.id,
+            'amountMinor': r.amountMinor,
+            'kind': r.kind.name,
+            'categoryId': r.categoryId,
+            'note': r.note,
+            'dayOfMonth': r.dayOfMonth,
+            'startsOn': r.startsOn.toUtc().toIso8601String(),
+            'isActive': r.isActive,
+            'createdAt': r.createdAt.toUtc().toIso8601String(),
+          },
+      ],
+      // The answers matter as much as the rules. Without them a restore would
+      // ask again about every month the user has already settled.
+      'recurringOccurrences': [
+        for (final o in await db.allOccurrences())
+          {
+            'id': o.id,
+            'ruleId': o.ruleId,
+            'dueOn': o.dueOn.toUtc().toIso8601String(),
+            'status': o.status.name,
+            'transactionId': o.transactionId,
           },
       ],
       'transactions': [
@@ -190,10 +218,47 @@ class Backup {
           ),
       ];
 
-      await db.restoreFrom(categoryRows: categories, txnRows: transactions);
+      // Absent in a v1 backup, which is fine: the lists simply come out empty
+      // and the user lands on a working app with no recurring rules.
+      final rawRules = decoded['recurringRules'];
+      final rules = <RecurringRulesCompanion>[
+        if (rawRules is List)
+          for (final r in rawRules.cast<Map<String, Object?>>())
+            RecurringRulesCompanion.insert(
+              id: Value(r['id']! as int),
+              amountMinor: r['amountMinor']! as int,
+              kind: TxKind.values.byName(r['kind']! as String),
+              categoryId: r['categoryId']! as int,
+              note: Value(r['note'] as String?),
+              dayOfMonth: r['dayOfMonth']! as int,
+              startsOn: DateTime.parse(r['startsOn']! as String).toLocal(),
+              isActive: Value(r['isActive'] as bool? ?? true),
+            ),
+      ];
+
+      final rawOccurrences = decoded['recurringOccurrences'];
+      final occurrences = <RecurringOccurrencesCompanion>[
+        if (rawOccurrences is List)
+          for (final o in rawOccurrences.cast<Map<String, Object?>>())
+            RecurringOccurrencesCompanion.insert(
+              id: Value(o['id']! as int),
+              ruleId: o['ruleId']! as int,
+              dueOn: DateTime.parse(o['dueOn']! as String).toLocal(),
+              status: OccurrenceStatus.values.byName(o['status']! as String),
+              transactionId: Value(o['transactionId'] as int?),
+            ),
+      ];
+
+      await db.restoreFrom(
+        categoryRows: categories,
+        txnRows: transactions,
+        ruleRows: rules,
+        occurrenceRows: occurrences,
+      );
       return RestoreSummary(
         categories: categories.length,
         transactions: transactions.length,
+        rules: rules.length,
       );
     } on BackupError {
       rethrow;
@@ -219,10 +284,15 @@ class Backup {
 }
 
 class RestoreSummary {
-  const RestoreSummary({required this.categories, required this.transactions});
+  const RestoreSummary({
+    required this.categories,
+    required this.transactions,
+    this.rules = 0,
+  });
 
   final int categories;
   final int transactions;
+  final int rules;
 }
 
 class BackupError implements Exception {

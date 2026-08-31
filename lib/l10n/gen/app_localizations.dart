@@ -519,6 +519,300 @@ abstract class AppLocalizations {
   /// In ro, this message translates to:
   /// **'{count, plural, =1{O tranzacție restaurată} other{{count} tranzacții restaurate}}'**
   String restoreDone(int count);
+
+  /// No description provided for @recurring.
+  ///
+  /// In ro, this message translates to:
+  /// **'Plăți recurente'**
+  String get recurring;
+
+  /// No description provided for @recurringSub.
+  ///
+  /// In ro, this message translates to:
+  /// **'Salariu, abonamente, chirie'**
+  String get recurringSub;
+
+  /// No description provided for @recurringEmptyTitle.
+  ///
+  /// In ro, this message translates to:
+  /// **'Nicio plată recurentă'**
+  String get recurringEmptyTitle;
+
+  /// No description provided for @recurringEmptyBody.
+  ///
+  /// In ro, this message translates to:
+  /// **'Adaugă salariul sau un abonament și aplicația te va întreba, în ziua respectivă, dacă a intrat.'**
+  String get recurringEmptyBody;
+
+  /// No description provided for @addRule.
+  ///
+  /// In ro, this message translates to:
+  /// **'Adaugă'**
+  String get addRule;
+
+  /// No description provided for @newRule.
+  ///
+  /// In ro, this message translates to:
+  /// **'Plată recurentă nouă'**
+  String get newRule;
+
+  /// No description provided for @ruleDay.
+  ///
+  /// In ro, this message translates to:
+  /// **'În fiecare lună, în'**
+  String get ruleDay;
+
+  /// No description provided for @rulePaused.
+  ///
+  /// In ro, this message translates to:
+  /// **'Pe pauză'**
+  String get rulePaused;
+
+  /// No description provided for @rulePauseAction.
+  ///
+  /// In ro, this message translates to:
+  /// **'Pune pe pauză'**
+  String get rulePauseAction;
+
+  /// No description provided for @ruleResumeAction.
+  ///
+  /// In ro, this message translates to:
+  /// **'Reia'**
+  String get ruleResumeAction;
+
+  /// No description provided for @ruleSaved.
+  ///
+  /// In ro, this message translates to:
+  /// **'Plată recurentă salvată'**
+  String get ruleSaved;
+
+  /// No description provided for @ruleDeleted.
+  ///
+  /// In ro, this message translates to:
+  /// **'Plată recurentă ștearsă'**
+  String get ruleDeleted;
+
+  /// No description provided for @ruleDeleteTitle.
+  ///
+  /// In ro, this message translates to:
+  /// **'Ștergi plata recurentă?'**
+  String get ruleDeleteTitle;
+
+  /// No description provided for @ruleDeleteBody.
+  ///
+  /// In ro, this message translates to:
+  /// **'Nu vei mai fi întrebat despre ea. Tranzacțiile deja înregistrate rămân neatinse.'**
+  String get ruleDeleteBody;
+
+  /// No description provided for @errorDayRequired.
+  ///
+  /// In ro, this message translates to:
+  /// **'Alege o zi din lună'**
+  String get errorDayRequired;
+
+  /// No description provided for @confirmYes.
+  ///
+  /// In ro, this message translates to:
+  /// **'Da'**
+  String get confirmYes;
+
+  /// No description provided for @confirmNo.
+  ///
+  /// In ro, this message translates to:
+  /// **'Nu'**
+  String get confirmNo;
+
+  /// No description provided for @occurrenceConfirmed.
+  ///
+  /// In ro, this message translates to:
+  /// **'Adăugat'**
+  String get occurrenceConfirmed;
+
+  /// No description provided for @occurrenceSkipped.
+  ///
+  /// In ro, this message translates to:
+  /// **'Sărit peste'**
+  String get occurrenceSkipped;
+
+  /// No description provided for @lastDayOfMonth.
+  ///
+  /// In ro, this message translates to:
+  /// **'ultima zi'**
+  String get lastDayOfMonth;
+
+  /// No description provided for @dayOfMonth.
+  ///
+  /// In ro, this message translates to:
+  /// **'ziua {day}'**
+  String dayOfMonth(int day);
+
+  /// No description provided for @pendingCount.
+  ///
+  /// In ro, this message translates to:
+  /// **'{count, plural, one{O plată de confirmat} few{{count} plăți de confirmat} other{{count} de plăți de confirmat}}'**
+  String pendingCount(int count);
+
+  /// No description provided for @repeatsMonthly.
+  ///
+  /// In ro, this message translates to:
+  /// **'Se repetă lunar'**
+  String get repeatsMonthly;
+
+  /// No description provided for @repeatsMonthlyHint.
+  ///
+  /// In ro, this message translates to:
+  /// **'Vei fi întrebat în fiecare lună dacă a intrat'**
+  String get repeatsMonthlyHint;
+
+  /// No description provided for @repeatsFromNextMonth.
+  ///
+  /// In ro, this message translates to:
+  /// **'Din luna viitoare, în fiecare {day}'**
+  String repeatsFromNextMonth(String day);
+
+  /// No description provided for @savedWithRule.
+  ///
+  /// In ro, this message translates to:
+  /// **'Salvat și setat ca lunar'**
+  String get savedWithRule;
+
+  /// No description provided for @autoBackup.
+  ///
+  /// In ro, this message translates to:
+  /// **'Backup automat'**
+  String get autoBackup;
+
+  /// No description provided for @autoBackupOn.
+  ///
+  /// In ro, this message translates to:
+  /// **'Zilnic, pe telefon'**
+  String get autoBackupOn;
+
+  /// No description provided for @autoBackupNever.
+  ///
+  /// In ro, this message translates to:
+  /// **'Încă niciunul'**
+  String get autoBackupNever;
+
+  /// No description provided for @autoBackupLast.
+  ///
+  /// In ro, this message translates to:
+  /// **'Ultimul: {when}'**
+  String autoBackupLast(String when);
+
+  /// No description provided for @autoBackupEmptyTitle.
+  ///
+  /// In ro, this message translates to:
+  /// **'Niciun backup automat încă'**
+  String get autoBackupEmptyTitle;
+
+  /// No description provided for @autoBackupEmptyBody.
+  ///
+  /// In ro, this message translates to:
+  /// **'Se face unul pe zi, automat, prima dată când deschizi aplicația.'**
+  String get autoBackupEmptyBody;
+
+  /// No description provided for @autoBackupNow.
+  ///
+  /// In ro, this message translates to:
+  /// **'Fă unul acum'**
+  String get autoBackupNow;
+
+  /// No description provided for @autoBackupDone.
+  ///
+  /// In ro, this message translates to:
+  /// **'Backup făcut'**
+  String get autoBackupDone;
+
+  /// No description provided for @autoBackupCount.
+  ///
+  /// In ro, this message translates to:
+  /// **'{count, plural, one{o tranzacție} few{{count} tranzacții} other{{count} de tranzacții}}'**
+  String autoBackupCount(int count);
+
+  /// No description provided for @autoBackupWarnTitle.
+  ///
+  /// In ro, this message translates to:
+  /// **'Rămâne pe telefon'**
+  String get autoBackupWarnTitle;
+
+  /// No description provided for @autoBackupWarnBody.
+  ///
+  /// In ro, this message translates to:
+  /// **'Backupurile automate te apără de ștergeri greșite, dar nu și de pierderea telefonului. Pentru asta, trimite-ți din când în când un backup complet pe mail sau pe Drive.'**
+  String get autoBackupWarnBody;
+
+  /// No description provided for @restoreFrom.
+  ///
+  /// In ro, this message translates to:
+  /// **'Restaurează din acesta'**
+  String get restoreFrom;
+
+  /// No description provided for @periodToday.
+  ///
+  /// In ro, this message translates to:
+  /// **'Azi'**
+  String get periodToday;
+
+  /// No description provided for @periodYesterday.
+  ///
+  /// In ro, this message translates to:
+  /// **'Ieri'**
+  String get periodYesterday;
+
+  /// No description provided for @periodThisWeek.
+  ///
+  /// In ro, this message translates to:
+  /// **'Săptămâna aceasta'**
+  String get periodThisWeek;
+
+  /// No description provided for @periodLastWeek.
+  ///
+  /// In ro, this message translates to:
+  /// **'Săptămâna trecută'**
+  String get periodLastWeek;
+
+  /// No description provided for @periodThisMonth.
+  ///
+  /// In ro, this message translates to:
+  /// **'Luna aceasta'**
+  String get periodThisMonth;
+
+  /// No description provided for @periodLastMonth.
+  ///
+  /// In ro, this message translates to:
+  /// **'Luna trecută'**
+  String get periodLastMonth;
+
+  /// No description provided for @backToNow.
+  ///
+  /// In ro, this message translates to:
+  /// **'Revino la azi'**
+  String get backToNow;
+
+  /// No description provided for @twelveMonths.
+  ///
+  /// In ro, this message translates to:
+  /// **'Ultimele 12 luni'**
+  String get twelveMonths;
+
+  /// No description provided for @twelveMonthsSub.
+  ///
+  /// In ro, this message translates to:
+  /// **'Apasă pe o lună ca s-o deschizi'**
+  String get twelveMonthsSub;
+
+  /// No description provided for @monthlyAverage.
+  ///
+  /// In ro, this message translates to:
+  /// **'Medie lunară'**
+  String get monthlyAverage;
+
+  /// No description provided for @noHistoryYet.
+  ///
+  /// In ro, this message translates to:
+  /// **'Prea puțin istoric pentru o comparație pe luni.'**
+  String get noHistoryYet;
 }
 
 class _AppLocalizationsDelegate

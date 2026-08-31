@@ -60,6 +60,45 @@ class DateRange {
     }
   }
 
+  /// The range for [period], moved [offset] steps back or forward.
+  ///
+  /// Zero is the period containing today, negative goes into the past. Stepping
+  /// by whole periods rather than by days is what makes "luna trecută" mean the
+  /// previous calendar month and not "thirty days ago", which in a month with
+  /// 31 days would land inside the same month.
+  static DateRange shifted(Period period, int offset, {DateTime? anchor}) {
+    final base = anchor ?? DateTime.now();
+    switch (period) {
+      case Period.day:
+        return of(
+          Period.day,
+          anchor: DateTime(base.year, base.month, base.day + offset),
+        );
+      case Period.week:
+        return of(
+          Period.week,
+          anchor: DateTime(base.year, base.month, base.day + offset * 7),
+        );
+      case Period.month:
+        // DateTime normalises an out-of-range month, so month 13 becomes
+        // January of the next year and month 0 becomes December of the last.
+        return of(
+          Period.month,
+          anchor: DateTime(base.year, base.month + offset, 1),
+        );
+    }
+  }
+
+  /// The window covering the last [months] calendar months, ending with the one
+  /// containing [anchor]. Twelve of them is the year the history screen shows.
+  static DateRange lastMonths(int months, {DateTime? anchor}) {
+    final base = anchor ?? DateTime.now();
+    return DateRange(
+      DateTime(base.year, base.month - (months - 1), 1),
+      DateTime(base.year, base.month + 1, 1),
+    );
+  }
+
   /// The trailing seven days ending tonight, for the home chart. Distinct from
   /// `Period.week`: this one always has seven bars, even mid-week.
   static DateRange lastSevenDays({DateTime? anchor}) {

@@ -38,6 +38,9 @@ class TransactionTile extends ConsumerWidget {
     final db = ref.read(databaseProvider);
     final txn = entry.txn;
 
+    // Read before the await: after it, this tile is already out of the tree.
+    final screenReader = MediaQuery.accessibleNavigationOf(context);
+
     await db.deleteTxn(txn.id);
     HapticFeedback.mediumImpact();
 
@@ -45,7 +48,15 @@ class TransactionTile extends ConsumerWidget {
     messenger.showSnackBar(
       SnackBar(
         content: Text(l10n.deleted),
-        duration: const Duration(seconds: 4),
+        duration: const Duration(seconds: 5),
+        // Flutter defaults `persist` to `action != null`, so a snack bar with
+        // an Undo button never goes away on its own and quietly outlives the
+        // `duration` above. That leaves a black bar sitting over the add
+        // button until something else replaces it.
+        //
+        // It stays only for a screen reader, where snatching the action away
+        // on a timer is the real problem the default was written for.
+        persist: screenReader,
         action: SnackBarAction(
           label: l10n.undo,
           onPressed: () {

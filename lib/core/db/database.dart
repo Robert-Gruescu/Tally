@@ -44,6 +44,83 @@ class Transactions extends Table {
   DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
 }
 
+/// Whether the user has yet answered "did this actually happen?".
+enum OccurrenceStatus { pending, confirmed, skipped }
+
+/// A salary or a subscription: an amount expected on the same day each month.
+///
+/// The rule is a template, not history. Editing it changes what is expected
+/// from now on and never rewrites transactions already recorded, because those
+/// describe money that really moved.
+@DataClassName('RecurringRule')
+class RecurringRules extends Table {
+  IntColumn get id => integer().autoIncrement()();
+  IntColumn get amountMinor => integer()();
+  TextColumn get kind => textEnum<TxKind>()();
+  IntColumn get categoryId =>
+      integer().references(Categories, #id, onDelete: KeyAction.restrict)();
+  TextColumn get note => text().nullable().withLength(max: 140)();
+
+  /// 1..31. A 31 lands on the last day of a shorter month rather than spilling
+  /// into the next one; see `Recurrence.dueDateIn`.
+  IntColumn get dayOfMonth => integer()();
+
+  /// Occurrences are never generated before this date, so adding a rule today
+  /// does not invent a year of back-dated salary.
+  DateTimeColumn get startsOn => dateTime()();
+  BoolColumn get isActive => boolean().withDefault(const Constant(true))();
+  DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
+}
+
+/// One expected date for one rule, and what the user decided about it.
+///
+/// This table is why the app can ask instead of assuming. Without it there
+/// would be nowhere to record "no, the salary did not arrive in May", and the
+/// question would come back every time the app opened.
+@DataClassName('RecurringOccurrence')
+class RecurringOccurrences extends Table {
+  IntColumn get id => integer().autoIncrement()();
+  IntColumn get ruleId =>
+      integer().references(RecurringRules, #id, onDelete: KeyAction.cascade)();
+
+  /// Local midnight of the day the money was expected.
+  DateTimeColumn get dueOn => dateTime()();
+  TextColumn get status => textEnum<OccurrenceStatus>()();
+
+  /// Set once confirmed. Nulled rather than cascaded if the user later deletes
+  /// that transaction by hand, so the occurrence stays answered.
+  IntColumn get transactionId =>
+      integer().nullable().references(Transactions, #id, onDelete: KeyAction.setNull)();
+
+  /// The duplicate guard. Opening the app twice in one day, or two catch-up
+  /// passes racing, cannot produce the same salary twice.
+  @override
+  List<Set<Column>> get uniqueKeys => [
+        {ruleId, dueOn},
+      ];
+}
+
+/// A pending question, with everything the banner needs to render it.
+class PendingOccurrence {
+  const PendingOccurrence({
+    required this.occurrence,
+    required this.rule,
+    required this.category,
+  });
+
+  final RecurringOccurrence occurrence;
+  final RecurringRule rule;
+  final Category category;
+}
+
+/// A rule with its category, for the management list.
+class RuleWithCategory {
+  const RuleWithCategory({required this.rule, required this.category});
+
+  final RecurringRule rule;
+  final Category category;
+}
+
 /// One row joined with its category, which is what every list and chart wants.
 class TxnWithCategory {
   const TxnWithCategory({required this.txn, required this.category});
@@ -73,6 +150,23 @@ class PeriodSummary {
   int get balanceMinor => incomeMinor - expenseMinor;
 }
 
+/// Income and expense for one calendar month, for the twelve-month history.
+class MonthTotal {
+  const MonthTotal({
+    required this.month,
+    required this.incomeMinor,
+    required this.expenseMinor,
+  });
+
+  /// First day of the month, local time.
+  final DateTime month;
+  final int incomeMinor;
+  final int expenseMinor;
+
+  int get balanceMinor => incomeMinor - expenseMinor;
+  bool get isEmpty => incomeMinor == 0 && expenseMinor == 0;
+}
+
 /// Expense total for a single calendar day, used by the 7-day bar chart.
 class DailyTotal {
   const DailyTotal({required this.day, required this.totalMinor});
@@ -81,14 +175,16 @@ class DailyTotal {
   final int totalMinor;
 }
 
-@DriftDatabase(tables: [Categories, Transactions])
+@DriftDatabase(
+  tables: [Categories, Transactions, RecurringRules, RecurringOccurrences],
+)
 class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(driftDatabase(name: 'tally'));
 
   AppDatabase.forTesting(super.executor);
 
   @override
-  int get schemaVersion => 1;
+  int get schemaVersion => 2;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -97,14 +193,35 @@ class AppDatabase extends _$AppDatabase {
         },
         onCreate: (m) async {
           await m.createAll();
-          // Reads slow to a crawl without this once a user has a year of data;
-          // every screen filters by date range.
-          await customStatement(
-            'CREATE INDEX idx_transactions_spent_at '
-            'ON transactions (spent_at)',
-          );
+          await _createIndexes();
+        },
+        onUpgrade: (m, from, to) async {
+          // v2 adds recurring rules. Existing rows are untouched: the two new
+          // tables start empty, so a user upgrading sees exactly the data they
+          // had, plus an empty "Plăți recurente" screen.
+          if (from < 2) {
+            await m.createTable(recurringRules);
+            await m.createTable(recurringOccurrences);
+            await customStatement(
+              'CREATE INDEX IF NOT EXISTS idx_occurrences_status '
+              'ON recurring_occurrences (status, due_on)',
+            );
+          }
         },
       );
+
+  Future<void> _createIndexes() async {
+    // Reads slow to a crawl without this once a user has a year of data;
+    // every screen filters by date range.
+    await customStatement(
+      'CREATE INDEX IF NOT EXISTS idx_transactions_spent_at '
+      'ON transactions (spent_at)',
+    );
+    await customStatement(
+      'CREATE INDEX IF NOT EXISTS idx_occurrences_status '
+      'ON recurring_occurrences (status, due_on)',
+    );
+  }
 
   // ---------------------------------------------------------------- categories
 
@@ -263,6 +380,49 @@ class AppDatabase extends _$AppDatabase {
     });
   }
 
+  /// Income and expense per calendar month across `[from, to)`, oldest first,
+  /// with empty months filled in.
+  ///
+  /// Bucketed in Dart for the same reason the daily chart is: SQLite resolves a
+  /// stored timestamp in UTC, so a transaction made late on the last evening of
+  /// a month would be counted in the previous one for anyone east of Greenwich.
+  Stream<List<MonthTotal>> watchMonthlyTotals({
+    required DateTime from,
+    required DateTime to,
+  }) {
+    final query = select(transactions)
+      ..where((t) =>
+          t.spentAt.isBiggerOrEqualValue(from) &
+          t.spentAt.isSmallerThanValue(to));
+
+    return query.watch().map((rows) {
+      final income = <DateTime, int>{};
+      final expense = <DateTime, int>{};
+
+      for (final row in rows) {
+        final local = row.spentAt.toLocal();
+        final key = DateTime(local.year, local.month, 1);
+        if (row.kind == TxKind.income) {
+          income[key] = (income[key] ?? 0) + row.amountMinor;
+        } else {
+          expense[key] = (expense[key] ?? 0) + row.amountMinor;
+        }
+      }
+
+      final result = <MonthTotal>[];
+      var cursor = DateTime(from.year, from.month, 1);
+      while (cursor.isBefore(to)) {
+        result.add(MonthTotal(
+          month: cursor,
+          incomeMinor: income[cursor] ?? 0,
+          expenseMinor: expense[cursor] ?? 0,
+        ));
+        cursor = DateTime(cursor.year, cursor.month + 1, 1);
+      }
+      return result;
+    });
+  }
+
   /// The distinct amounts most recently used in a category, newest first.
   /// Feeds the quick-amount chips: people spend the same numbers repeatedly.
   Future<List<int>> recentAmounts(int categoryId, {int limit = 3}) async {
@@ -277,6 +437,142 @@ class AppDatabase extends _$AppDatabase {
         .map((row) => row.read(transactions.amountMinor))
         .whereType<int>()
         .toList();
+  }
+
+  // ---------------------------------------------------------------- recurring
+
+  Stream<List<RuleWithCategory>> watchRules() {
+    final query = select(recurringRules).join([
+      innerJoin(categories, categories.id.equalsExp(recurringRules.categoryId)),
+    ])
+      ..orderBy([
+        OrderingTerm.asc(recurringRules.isActive.not()),
+        OrderingTerm.asc(recurringRules.dayOfMonth),
+      ]);
+
+    return query.watch().map(
+          (rows) => rows
+              .map((row) => RuleWithCategory(
+                    rule: row.readTable(recurringRules),
+                    category: row.readTable(categories),
+                  ))
+              .toList(),
+        );
+  }
+
+  Future<List<RecurringRule>> allRules() => select(recurringRules).get();
+
+  Future<List<RecurringOccurrence>> allOccurrences() =>
+      select(recurringOccurrences).get();
+
+  Future<List<RecurringRule>> activeRules() =>
+      (select(recurringRules)..where((r) => r.isActive.equals(true))).get();
+
+  Future<int> insertRule(RecurringRulesCompanion rule) =>
+      into(recurringRules).insert(rule);
+
+  Future<bool> updateRule(RecurringRule rule) =>
+      update(recurringRules).replace(rule);
+
+  /// Removes a rule and its unanswered questions, but leaves every transaction
+  /// it already produced. Those record money that moved; the rule only said it
+  /// was going to.
+  Future<void> deleteRule(int ruleId) {
+    return transaction(() async {
+      await (update(recurringOccurrences)
+            ..where((o) => o.ruleId.equals(ruleId)))
+          .write(const RecurringOccurrencesCompanion(
+        transactionId: Value(null),
+      ));
+      await (delete(recurringOccurrences)..where((o) => o.ruleId.equals(ruleId)))
+          .go();
+      await (delete(recurringRules)..where((r) => r.id.equals(ruleId))).go();
+    });
+  }
+
+  /// The questions waiting for an answer, oldest first.
+  Stream<List<PendingOccurrence>> watchPending() {
+    final query = select(recurringOccurrences).join([
+      innerJoin(recurringRules,
+          recurringRules.id.equalsExp(recurringOccurrences.ruleId)),
+      innerJoin(categories, categories.id.equalsExp(recurringRules.categoryId)),
+    ])
+      ..where(recurringOccurrences.status.equalsValue(OccurrenceStatus.pending))
+      ..orderBy([OrderingTerm.asc(recurringOccurrences.dueOn)]);
+
+    return query.watch().map(
+          (rows) => rows
+              .map((row) => PendingOccurrence(
+                    occurrence: row.readTable(recurringOccurrences),
+                    rule: row.readTable(recurringRules),
+                    category: row.readTable(categories),
+                  ))
+              .toList(),
+        );
+  }
+
+  /// The dates already generated for a rule, so the catch-up pass knows what
+  /// it can skip.
+  Future<Set<DateTime>> generatedDatesFor(int ruleId) async {
+    final rows = await (select(recurringOccurrences)
+          ..where((o) => o.ruleId.equals(ruleId)))
+        .get();
+    return rows.map((o) => o.dueOn).toSet();
+  }
+
+  Future<void> addOccurrences(List<RecurringOccurrencesCompanion> rows) async {
+    if (rows.isEmpty) return;
+    await batch((b) {
+      // `insertOrIgnore` leans on the (ruleId, dueOn) unique key: if two
+      // catch-up passes overlap, the second one is a no-op instead of a
+      // duplicate salary.
+      b.insertAllOnConflictUpdate(recurringOccurrences, rows);
+    });
+  }
+
+  /// Answers "yes": writes the real transaction and links it.
+  Future<void> confirmOccurrence(
+    RecurringOccurrence occurrence,
+    RecurringRule rule,
+  ) {
+    return transaction(() async {
+      final txnId = await into(transactions).insert(
+        TransactionsCompanion.insert(
+          amountMinor: rule.amountMinor,
+          kind: rule.kind,
+          categoryId: rule.categoryId,
+          note: Value(rule.note),
+          // The due date, not today: a salary confirmed three days late still
+          // belongs to the day it was expected.
+          spentAt: occurrence.dueOn,
+        ),
+      );
+      await (update(recurringOccurrences)
+            ..where((o) => o.id.equals(occurrence.id)))
+          .write(RecurringOccurrencesCompanion(
+        status: const Value(OccurrenceStatus.confirmed),
+        transactionId: Value(txnId),
+      ));
+    });
+  }
+
+  /// Answers "no": the question is settled and never asked again.
+  Future<void> skipOccurrence(int occurrenceId) {
+    return (update(recurringOccurrences)..where((o) => o.id.equals(occurrenceId)))
+        .write(const RecurringOccurrencesCompanion(
+      status: Value(OccurrenceStatus.skipped),
+    ));
+  }
+
+  /// The date of the oldest transaction, or null when there are none.
+  ///
+  /// Bounds how far back the app lets you walk: there is nothing recorded
+  /// before it, and arrowing into empty years is a way to get lost, not a
+  /// feature.
+  Stream<DateTime?> watchFirstTransactionDate() {
+    final earliest = transactions.spentAt.min();
+    final query = selectOnly(transactions)..addColumns([earliest]);
+    return query.watchSingleOrNull().map((row) => row?.read(earliest));
   }
 
   /// Wipes user data but keeps categories, for Settings.
@@ -299,13 +595,24 @@ class AppDatabase extends _$AppDatabase {
   Future<void> restoreFrom({
     required List<CategoriesCompanion> categoryRows,
     required List<TransactionsCompanion> txnRows,
+    List<RecurringRulesCompanion> ruleRows = const [],
+    List<RecurringOccurrencesCompanion> occurrenceRows = const [],
   }) {
     return transaction(() async {
+      // Occurrences reference both other tables, so they go first. A restore
+      // replaces the whole world; leaving stale questions behind would attach
+      // them to transactions that no longer exist.
+      await delete(recurringOccurrences).go();
+      await delete(recurringRules).go();
       await delete(transactions).go();
       await delete(categories).go();
       await batch((b) {
+        // Order matters: rules reference categories, occurrences reference
+        // both rules and transactions.
         b.insertAll(categories, categoryRows);
         b.insertAll(transactions, txnRows);
+        b.insertAll(recurringRules, ruleRows);
+        b.insertAll(recurringOccurrences, occurrenceRows);
       });
     });
   }

@@ -2,13 +2,17 @@ import 'dart:io';
 
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:share_plus/share_plus.dart';
 
+import '../../core/auto_backup.dart';
 import '../../core/backup.dart';
 import '../../core/theme.dart';
 import '../../l10n/gen/app_localizations.dart';
 import '../../providers.dart';
+import '../recurring/recurring_screen.dart';
+import 'auto_backup_screen.dart';
 
 class SettingsScreen extends ConsumerStatefulWidget {
   const SettingsScreen({super.key});
@@ -21,6 +25,34 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   /// Guards the export and restore rows while a file is being written or read,
   /// so a double tap cannot start two restores over each other.
   bool _busy = false;
+  DateTime? _lastAuto;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadLastAuto();
+  }
+
+  Future<void> _loadLastAuto() async {
+    final at = await AutoBackup.lastRun(ref.read(preferencesProvider));
+    if (mounted) setState(() => _lastAuto = at);
+  }
+
+  /// "azi, 14:32" reads better than a full date for something that happens
+  /// every day; older ones get the day name so they are still placeable.
+  String _formatLast(BuildContext context, DateTime at) {
+    final l10n = AppLocalizations.of(context);
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final day = DateTime(at.year, at.month, at.day);
+    final time = DateFormat('HH:mm').format(at);
+
+    if (day == today) return '${l10n.today.toLowerCase()}, $time';
+    if (day == today.subtract(const Duration(days: 1))) {
+      return '${l10n.yesterday.toLowerCase()}, $time';
+    }
+    return DateFormat('d MMMM, HH:mm', 'ro_RO').format(at);
+  }
 
   Future<void> _run(Future<void> Function() action) async {
     if (_busy) return;
@@ -195,6 +227,12 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
 
           _SectionHeader(l10n.sectionData),
           _Row(
+            icon: Icons.event_repeat_rounded,
+            title: l10n.recurring,
+            subtitle: l10n.recurringSub,
+            onTap: () => Navigator.of(context).push(RecurringScreen.route()),
+          ),
+          _Row(
             icon: Icons.payments_outlined,
             title: l10n.currency,
             trailing: currency,
@@ -222,6 +260,17 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             subtitle: l10n.restoreBackupSub,
             enabled: !_busy,
             onTap: () => _run(_restore),
+          ),
+          _Row(
+            icon: Icons.history_rounded,
+            title: l10n.autoBackup,
+            subtitle: _lastAuto == null
+                ? l10n.autoBackupOn
+                : l10n.autoBackupLast(_formatLast(context, _lastAuto!)),
+            onTap: () async {
+              await Navigator.of(context).push(AutoBackupScreen.route());
+              if (mounted) _loadLastAuto();
+            },
           ),
 
           _SectionHeader(l10n.sectionApp),

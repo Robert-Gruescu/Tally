@@ -77,6 +77,12 @@ class PeriodSelector extends ConsumerWidget {
                             if (period == selected) return;
                             HapticFeedback.selectionClick();
                             ref.read(periodProvider.notifier).state = period;
+                            // Back to the present. Carrying "three steps back"
+                            // across a change of window size would turn three
+                            // weeks ago into three months ago, which nobody
+                            // asked for.
+                            ref.read(periodOffsetProvider.notifier).state = 0;
+                            ref.read(selectedDayProvider.notifier).state = null;
                           },
                           child: Center(
                             child: AnimatedDefaultTextStyle(
