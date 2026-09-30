@@ -104,8 +104,16 @@ class TransactionTile extends ConsumerWidget {
         ),
       ),
       onDismissed: (_) => _delete(context, ref),
-      child: Container(
-        color: theme.scaffoldBackgroundColor,
+      child: DecoratedBox(
+        // Deliberately no fill. The row used to paint itself in the page colour
+        // to hide the delete background underneath, which over a gradient would
+        // have drawn a flat band across every line of the ledger.
+        //
+        // It turns out not to be needed: Dismissible only puts its background
+        // in the tree once the row has actually been dragged, and clips it to
+        // the strip the row has moved off, so at rest there is nothing behind
+        // to hide.
+        decoration: const BoxDecoration(),
         child: Column(
           children: [
             InkWell(

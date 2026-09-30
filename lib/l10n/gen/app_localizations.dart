@@ -400,6 +400,30 @@ abstract class AppLocalizations {
   /// **'Aplicație'**
   String get sectionApp;
 
+  /// No description provided for @sectionLook.
+  ///
+  /// In ro, this message translates to:
+  /// **'Cum arată'**
+  String get sectionLook;
+
+  /// No description provided for @streakDays.
+  ///
+  /// In ro, this message translates to:
+  /// **'{count, plural, one{O zi la rând} few{{count} zile la rând} other{{count} de zile la rând}}'**
+  String streakDays(int count);
+
+  /// No description provided for @themeTitle.
+  ///
+  /// In ro, this message translates to:
+  /// **'Tema'**
+  String get themeTitle;
+
+  /// No description provided for @themeSub.
+  ///
+  /// In ro, this message translates to:
+  /// **'Alege cum arată aplicația. Poți schimba oricând, nu se pierde nimic.'**
+  String get themeSub;
+
   /// No description provided for @currency.
   ///
   /// In ro, this message translates to:

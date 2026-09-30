@@ -3,6 +3,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import 'core/db/database.dart';
 import 'core/period.dart';
+import 'core/theme.dart';
 
 /// Both are supplied by `main` through `ProviderScope.overrides`, so the app
 /// never renders against a half-open database and no screen has to handle a
@@ -38,6 +39,29 @@ class CurrencyNotifier extends StateNotifier<String> {
 
 final currencyProvider = StateNotifierProvider<CurrencyNotifier, String>(
   (ref) => CurrencyNotifier(ref.watch(preferencesProvider)),
+);
+
+const _flavorKey = 'app_flavor';
+
+/// Which crown is on.
+///
+/// Remembered across restarts, because a child who picked Prințesă and found
+/// the app grey again the next morning has learned that their choice does not
+/// count for anything.
+class FlavorNotifier extends StateNotifier<AppFlavor> {
+  FlavorNotifier(this._prefs)
+      : super(AppFlavor.byName(_prefs.getString(_flavorKey)));
+
+  final SharedPreferences _prefs;
+
+  Future<void> set(AppFlavor flavor) async {
+    state = flavor;
+    await _prefs.setString(_flavorKey, flavor.name);
+  }
+}
+
+final flavorProvider = StateNotifierProvider<FlavorNotifier, AppFlavor>(
+  (ref) => FlavorNotifier(ref.watch(preferencesProvider)),
 );
 
 // -------------------------------------------------------------------- period
@@ -168,6 +192,41 @@ final monthlyTotalsProvider = StreamProvider<List<MonthTotal>>((ref) {
         from: range.from,
         to: range.to,
       );
+});
+
+/// Days carrying at least one entry, over the window the streak can reach.
+///
+/// Four months is well past any run worth showing and keeps the query small.
+final loggedDaysProvider = StreamProvider<Set<DateTime>>((ref) {
+  final today = DateRange.today();
+  return ref.watch(databaseProvider).watchLoggedDays(
+        from: DateTime(today.year, today.month, today.day - 120),
+        to: DateTime(today.year, today.month, today.day + 1),
+      );
+});
+
+/// How many days in a row have something written down, counting back from now.
+///
+/// If today is still empty the run is measured from yesterday instead, so it
+/// does not read as broken every morning before the first entry. Breaking a
+/// streak at midnight would punish someone for being asleep.
+final streakProvider = Provider<int>((ref) {
+  final days = ref.watch(loggedDaysProvider).valueOrNull;
+  if (days == null || days.isEmpty) return 0;
+
+  final today = DateRange.today();
+  var cursor = today;
+  if (!days.contains(cursor)) {
+    cursor = DateTime(today.year, today.month, today.day - 1);
+    if (!days.contains(cursor)) return 0;
+  }
+
+  var count = 0;
+  while (days.contains(cursor)) {
+    count++;
+    cursor = DateTime(cursor.year, cursor.month, cursor.day - 1);
+  }
+  return count;
 });
 
 // ----------------------------------------------------------------- recurring

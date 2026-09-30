@@ -13,6 +13,7 @@ import '../../l10n/gen/app_localizations.dart';
 import '../../providers.dart';
 import '../recurring/recurring_screen.dart';
 import 'auto_backup_screen.dart';
+import 'theme_screen.dart';
 
 class SettingsScreen extends ConsumerStatefulWidget {
   const SettingsScreen({super.key});
@@ -230,6 +231,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     final theme = Theme.of(context);
     final money = theme.extension<MoneyColors>()!;
     final currency = ref.watch(currencyProvider);
+    final flavor = ref.watch(flavorProvider);
 
     return SafeArea(
       bottom: false,
@@ -287,6 +289,17 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               await Navigator.of(context).push(AutoBackupScreen.route());
               if (mounted) _loadLastAuto();
             },
+          ),
+
+          _SectionHeader(l10n.sectionLook),
+          _Row(
+            // The chosen theme names itself in the trailing slot, so the row
+            // says which crown is on without having to be opened.
+            icon: flavor.emblem,
+            title: l10n.themeTitle,
+            subtitle: flavor.description,
+            trailing: flavor.label,
+            onTap: () => Navigator.of(context).push(ThemeScreen.route()),
           ),
 
           _SectionHeader(l10n.sectionApp),

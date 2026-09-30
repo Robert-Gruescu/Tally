@@ -10,6 +10,7 @@ import '../../core/money.dart';
 import '../../core/recurrence.dart';
 import '../../core/recurrence_service.dart';
 import '../../core/theme.dart';
+import '../../core/widgets/celebration.dart';
 import '../../core/widgets/day_of_month_picker.dart';
 import '../../l10n/gen/app_localizations.dart';
 import '../../providers.dart';
@@ -176,6 +177,16 @@ class _AddTransactionSheetState extends ConsumerState<AddTransactionSheet> {
 
     setState(() => _saving = true);
 
+    // Read off this context before the first await, so nothing below has to
+    // reach through a widget that may already be gone. The overlay belongs to
+    // the root navigator and outlives this sheet, which is what lets the burst
+    // play over the list the entry has just landed in rather than over a sheet
+    // on its way out.
+    final overlay = Navigator.of(context, rootNavigator: true).overlay;
+    final confetti = ref.read(flavorProvider).confetti;
+    final accent = Theme.of(context).colorScheme.primary;
+    final reducedMotion = MediaQuery.disableAnimationsOf(context);
+
     final db = ref.read(databaseProvider);
     final note = _noteController.text.trim();
     final noteValue = Value(note.isEmpty ? null : note);
@@ -225,6 +236,12 @@ class _AddTransactionSheetState extends ConsumerState<AddTransactionSheet> {
     if (!mounted) return;
 
     Navigator.of(context).pop();
+    showCelebration(
+      overlay,
+      icon: confetti,
+      colour: accent,
+      reducedMotion: reducedMotion,
+    );
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(

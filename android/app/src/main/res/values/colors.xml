@@ -1,4 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!--
+  The page the app opens on. There is no night variant: the app is light
+  whatever the phone is set to, and a dark flash before a light page is the
+  same rough edge as a white flash before a dark one.
+-->
 <resources>
-    <color name="launch_background">#12161A</color>
+    <color name="launch_background">#FDF4F7</color>
 </resources>

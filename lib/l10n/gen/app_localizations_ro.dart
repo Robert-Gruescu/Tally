@@ -173,6 +173,28 @@ class AppLocalizationsRo extends AppLocalizations {
   String get sectionApp => 'Aplicație';
 
   @override
+  String get sectionLook => 'Cum arată';
+
+  @override
+  String streakDays(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count de zile la rând',
+      few: '$count zile la rând',
+      one: 'O zi la rând',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get themeTitle => 'Tema';
+
+  @override
+  String get themeSub =>
+      'Alege cum arată aplicația. Poți schimba oricând, nu se pierde nimic.';
+
+  @override
   String get currency => 'Monedă';
 
   @override

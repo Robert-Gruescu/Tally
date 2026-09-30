@@ -210,7 +210,67 @@ class _BalanceBlock extends ConsumerWidget {
             ),
           ],
         ),
+        const _StreakBadge(),
       ],
+    );
+  }
+}
+
+/// How many days in a row have something written down.
+///
+/// The one piece of encouragement in the app, and it is deliberately thin.
+/// It appears only once there is a run worth naming, and it says nothing at
+/// all the rest of the time: a badge that nags on day zero teaches people to
+/// stop looking at that corner of the screen.
+///
+/// It also never scolds. A broken run simply disappears rather than announcing
+/// itself, because the point is to make writing things down feel worth
+/// continuing, not to make missing a day feel like a failure.
+class _StreakBadge extends ConsumerWidget {
+  const _StreakBadge();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final streak = ref.watch(streakProvider);
+    // Two is the shortest run that means anything. One day is just today.
+    if (streak < 2) return const SizedBox.shrink();
+
+    final l10n = AppLocalizations.of(context);
+    final theme = Theme.of(context);
+    final accent = theme.colorScheme.primary;
+    final flavor = ref.watch(flavorProvider);
+
+    return Padding(
+      padding: const EdgeInsets.only(top: 18),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.fromLTRB(10, 6, 12, 6),
+            decoration: BoxDecoration(
+              color: accent.withValues(alpha: 0.10),
+              borderRadius: BorderRadius.circular(999),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(flavor.emblem, size: 15, color: accent),
+                const SizedBox(width: 7),
+                Flexible(
+                  child: Text(
+                    l10n.streakDays(streak),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: theme.textTheme.labelMedium?.copyWith(
+                      color: accent,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

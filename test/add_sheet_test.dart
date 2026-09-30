@@ -79,7 +79,7 @@ Future<void> _pumpSheet(
             .overrideWith((ref) => Stream.value(const <Category>[])),
       ],
       child: MaterialApp(
-        theme: AppTheme.light(),
+        theme: AppTheme.light(AppFlavor.princess),
         locale: const Locale('ro'),
         localizationsDelegates: const [
           AppLocalizations.delegate,

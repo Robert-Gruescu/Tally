@@ -52,7 +52,7 @@ void main() {
           databaseProvider.overrideWithValue(db),
         ],
         child: MaterialApp(
-          theme: AppTheme.light(),
+          theme: AppTheme.light(AppFlavor.princess),
           locale: const Locale('ro'),
           localizationsDelegates: const [
             AppLocalizations.delegate,

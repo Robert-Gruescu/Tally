@@ -54,7 +54,7 @@ Future<ProviderContainer> _pumpChart(WidgetTester tester) async {
     UncontrolledProviderScope(
       container: container,
       child: MaterialApp(
-        theme: AppTheme.light(),
+        theme: AppTheme.light(AppFlavor.princess),
         locale: const Locale('ro'),
         localizationsDelegates: const [
           AppLocalizations.delegate,

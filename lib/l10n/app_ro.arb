@@ -86,6 +86,19 @@
   "savedChanges": "Modificare salvată",
   "sectionData": "Date",
   "sectionApp": "Aplicație",
+  "sectionLook": "Cum arată",
+  "streakDays": "{count, plural, one{O zi la rând} few{{count} zile la rând} other{{count} de zile la rând}}",
+  "@streakDays": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+
+  "themeTitle": "Tema",
+  "themeSub": "Alege cum arată aplicația. Poți schimba oricând, nu se pierde nimic.",
+
   "currency": "Monedă",
   "exportCsv": "Exportă în CSV",
   "exportCsvSub": "Pentru Excel sau Google Sheets",

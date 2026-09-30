@@ -423,6 +423,34 @@ class AppDatabase extends _$AppDatabase {
     });
   }
 
+  /// The local days inside `[from, to)` that carry at least one transaction.
+  ///
+  /// Feeds the run of consecutive days on Home. Deliberately about `spentAt`
+  /// rather than when the row was typed: what it counts is whether the diary
+  /// has a gap, which is the thing on screen and the thing a child can see
+  /// themselves closing.
+  ///
+  /// Bucketed in Dart, like every other day query here, because SQLite
+  /// resolves a stored timestamp in UTC.
+  Stream<Set<DateTime>> watchLoggedDays({
+    required DateTime from,
+    required DateTime to,
+  }) {
+    final query = select(transactions)
+      ..where((t) =>
+          t.spentAt.isBiggerOrEqualValue(from) &
+          t.spentAt.isSmallerThanValue(to));
+
+    return query.watch().map((rows) {
+      final days = <DateTime>{};
+      for (final row in rows) {
+        final local = row.spentAt.toLocal();
+        days.add(DateTime(local.year, local.month, local.day));
+      }
+      return days;
+    });
+  }
+
   /// The distinct amounts most recently used in a category, newest first.
   /// Feeds the quick-amount chips: people spend the same numbers repeatedly.
   Future<List<int>> recentAmounts(int categoryId, {int limit = 3}) async {
