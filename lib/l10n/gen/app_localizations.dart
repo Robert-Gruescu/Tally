@@ -733,13 +733,13 @@ abstract class AppLocalizations {
   /// No description provided for @autoBackupWarnTitle.
   ///
   /// In ro, this message translates to:
-  /// **'Rămâne pe telefon'**
+  /// **'Unde ajung datele tale'**
   String get autoBackupWarnTitle;
 
   /// No description provided for @autoBackupWarnBody.
   ///
   /// In ro, this message translates to:
-  /// **'Backupurile automate te apără de ștergeri greșite, dar nu și de pierderea telefonului. Pentru asta, trimite-ți din când în când un backup complet pe mail sau pe Drive.'**
+  /// **'Snapshoturile zilnice de mai jos stau în aplicație și dispar odată cu ea dacă o dezinstalezi. Ca să rămână ceva pe telefon, alege un folder. Ca să se restaureze singur, pornește backupul Google.'**
   String get autoBackupWarnBody;
 
   /// No description provided for @restoreFrom.
@@ -813,6 +813,114 @@ abstract class AppLocalizations {
   /// In ro, this message translates to:
   /// **'Prea puțin istoric pentru o comparație pe luni.'**
   String get noHistoryYet;
+
+  /// No description provided for @folderBackup.
+  ///
+  /// In ro, this message translates to:
+  /// **'Folder pe telefon'**
+  String get folderBackup;
+
+  /// No description provided for @folderBackupNone.
+  ///
+  /// In ro, this message translates to:
+  /// **'Nu ai ales unul încă'**
+  String get folderBackupNone;
+
+  /// No description provided for @folderBackupPick.
+  ///
+  /// In ro, this message translates to:
+  /// **'Alege un folder'**
+  String get folderBackupPick;
+
+  /// No description provided for @folderBackupChange.
+  ///
+  /// In ro, this message translates to:
+  /// **'Schimbă folderul'**
+  String get folderBackupChange;
+
+  /// No description provided for @folderBackupWhy.
+  ///
+  /// In ro, this message translates to:
+  /// **'Fișierele scrise aici rămân pe telefon chiar dacă dezinstalezi aplicația. Le vezi în Fișiere și le poți copia pe calculator sau trimite pe mail.'**
+  String get folderBackupWhy;
+
+  /// No description provided for @folderBackupLost.
+  ///
+  /// In ro, this message translates to:
+  /// **'Nu mai am acces la folder'**
+  String get folderBackupLost;
+
+  /// No description provided for @folderBackupLostBody.
+  ///
+  /// In ro, this message translates to:
+  /// **'L-ai mutat, l-ai șters, sau ai reinstalat aplicația. Alege-l din nou ca backupurile să continue.'**
+  String get folderBackupLostBody;
+
+  /// No description provided for @folderBackupEmpty.
+  ///
+  /// In ro, this message translates to:
+  /// **'Niciun backup scris în folder încă'**
+  String get folderBackupEmpty;
+
+  /// No description provided for @googleBackup.
+  ///
+  /// In ro, this message translates to:
+  /// **'Backup în contul Google'**
+  String get googleBackup;
+
+  /// No description provided for @googleBackupBody.
+  ///
+  /// In ro, this message translates to:
+  /// **'Singurul care se restaurează singur, fără niciun pas din partea ta, atunci când reinstalezi aplicația pe același cont Google. Se pornește din setările telefonului — aplicația nu poate face asta în locul tău.'**
+  String get googleBackupBody;
+
+  /// No description provided for @googleBackupOpen.
+  ///
+  /// In ro, this message translates to:
+  /// **'Deschide setările telefonului'**
+  String get googleBackupOpen;
+
+  /// No description provided for @restoreFromFolder.
+  ///
+  /// In ro, this message translates to:
+  /// **'Restaurează din folder'**
+  String get restoreFromFolder;
+
+  /// No description provided for @hadAppBefore.
+  ///
+  /// In ro, this message translates to:
+  /// **'Ai mai folosit Tally?'**
+  String get hadAppBefore;
+
+  /// No description provided for @hadAppBeforeBody.
+  ///
+  /// In ro, this message translates to:
+  /// **'Dacă ai un folder cu backupuri de la o instalare anterioară, arată-mi-l și îți aduc datele înapoi.'**
+  String get hadAppBeforeBody;
+
+  /// No description provided for @findMyBackup.
+  ///
+  /// In ro, this message translates to:
+  /// **'Caută backupul meu'**
+  String get findMyBackup;
+
+  /// No description provided for @noBackupsInFolder.
+  ///
+  /// In ro, this message translates to:
+  /// **'Nu am găsit niciun backup în folderul ales.'**
+  String get noBackupsInFolder;
+
+  /// No description provided for @restoreFoundBody.
+  ///
+  /// In ro, this message translates to:
+  /// **'Îți aduc înapoi tranzacțiile, categoriile și plățile recurente din el. Nu ai nimic înregistrat acum, deci nu se pierde nimic.'**
+  String get restoreFoundBody;
+
+  /// No description provided for @foundBackups.
+  ///
+  /// In ro, this message translates to:
+  /// **'{count, plural, one{Am găsit un backup} few{Am găsit {count} backupuri} other{Am găsit {count} de backupuri}}'**
+  String foundBackups(int count);
 }
 
 class _AppLocalizationsDelegate

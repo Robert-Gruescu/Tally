@@ -115,6 +115,14 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     );
     if (confirmed != true || !mounted) return;
 
+    // A snapshot of what is about to be replaced. Restoring the wrong file is
+    // the single easiest way to lose everything in this app, and the daily
+    // rotation alone can be almost a day out of date when it happens.
+    await AutoBackup.safetySnapshot(
+      ref.read(databaseProvider),
+      ref.read(preferencesProvider),
+    );
+
     try {
       final summary =
           await Backup.restore(ref.read(databaseProvider), File(path));
@@ -138,6 +146,14 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       destructive: true,
     );
     if (confirmed != true) return;
+
+    // Same reason as the restore above: the dialog says "definitiv", and it
+    // still is as far as the ledger goes, but the snapshot means a mistaken
+    // tap is recoverable from the backup list instead of being final.
+    await AutoBackup.safetySnapshot(
+      ref.read(databaseProvider),
+      ref.read(preferencesProvider),
+    );
 
     await ref.read(databaseProvider).deleteAllTransactions();
     _toast(l10n.wipeDone);

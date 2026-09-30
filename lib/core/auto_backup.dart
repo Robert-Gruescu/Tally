@@ -6,6 +6,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'backup.dart';
+import 'backup_folder.dart';
 import 'db/database.dart';
 
 /// A snapshot the app takes of itself, without being asked.
@@ -67,9 +68,26 @@ class AutoBackup {
       final stamp = DateFormat('yyyy-MM-dd-HHmm').format(at);
       final file = File('${dir.path}${Platform.pathSeparator}tally-auto-$stamp.json');
 
-      await file.writeAsString(await Backup.buildBackupJson(db), flush: true);
+      // Written aside and moved into place, never straight onto the final
+      // name. A snapshot is taken as the app is being backgrounded, which is
+      // exactly when Android is most willing to kill the process: a write cut
+      // in half would leave a truncated file wearing a valid name, and the
+      // rotation below would then discard a good snapshot to keep it.
+      // A rename within one directory is atomic, so the file either is not
+      // there or is complete.
+      final partial = File('${file.path}.part');
+      await partial.writeAsString(await Backup.buildBackupJson(db), flush: true);
+      await partial.rename(file.path);
+
       await prefs.setInt(_lastRunKey, at.millisecondsSinceEpoch);
       await _prune(dir);
+
+      // The same snapshot, into the folder the user chose, if they chose one.
+      // This is the copy that is still there after an uninstall; the one above
+      // goes away with the app. Deliberately not awaited for its result: a
+      // folder that has been deleted or unmounted returns false and the
+      // internal snapshot still counts as taken.
+      await BackupFolder.mirror(db, prefs, now: at);
 
       return file;
     } catch (_) {
@@ -83,6 +101,8 @@ class AutoBackup {
       final dir = await _directory();
       final files = await dir
           .list()
+          // `.part` files are writes in flight, or the remains of one the
+          // system killed. Neither is a snapshot anyone can restore.
           .where((e) => e is File && e.path.endsWith('.json'))
           .cast<File>()
           .toList();
@@ -105,6 +125,22 @@ class AutoBackup {
       return const [];
     }
   }
+
+  /// Forces a snapshot before something irreversible.
+  ///
+  /// Restoring a file and wiping the ledger both destroy everything currently
+  /// recorded. Leaning on the daily rotation for that means the protection is
+  /// up to twenty-four hours stale, so a restore of the wrong file can cost a
+  /// day of entries with no way back. This costs a few tens of kilobytes and
+  /// removes the whole class of regret.
+  ///
+  /// Like [runIfDue] it never throws: it must not be able to block the action
+  /// the user actually asked for.
+  static Future<File?> safetySnapshot(
+    AppDatabase db,
+    SharedPreferences prefs,
+  ) =>
+      runIfDue(db, prefs, force: true);
 
   static Future<DateTime?> lastRun(SharedPreferences prefs) async {
     final value = prefs.getInt(_lastRunKey);

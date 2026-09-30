@@ -57,23 +57,45 @@ class MonthlyChart extends ConsumerWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        // Both halves are `Flexible`: the title is a fixed string, but the
+        // average beside it is unbounded, and a reader who has scaled their
+        // font up is exactly the reader this row would otherwise run off the
+        // edge for. Neither side is allowed to push the other out of view.
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           crossAxisAlignment: CrossAxisAlignment.end,
           children: [
-            Text(l10n.twelveMonths, style: theme.textTheme.titleMedium),
-            Row(
-              children: [
-                Text('${l10n.monthlyAverage} ', style: theme.textTheme.bodySmall),
-                MoneyText(
-                  minor: average,
-                  currency: currency,
-                  showCurrency: false,
-                  style: theme.textTheme.labelMedium,
-                  color: money.muted,
-                  fractionScale: 0.84,
-                ),
-              ],
+            Flexible(
+              child: Text(
+                l10n.twelveMonths,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: theme.textTheme.titleMedium,
+              ),
+            ),
+            const SizedBox(width: 12),
+            Flexible(
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Flexible(
+                    child: Text(
+                      '${l10n.monthlyAverage} ',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: theme.textTheme.bodySmall,
+                    ),
+                  ),
+                  MoneyText(
+                    minor: average,
+                    currency: currency,
+                    showCurrency: false,
+                    style: theme.textTheme.labelMedium,
+                    color: money.muted,
+                    fractionScale: 0.84,
+                  ),
+                ],
+              ),
             ),
           ],
         ),
@@ -144,6 +166,12 @@ class _Bars extends ConsumerWidget {
     HapticFeedback.selectionClick();
     ref.read(periodProvider.notifier).state = Period.month;
     ref.read(periodOffsetProvider.notifier).state = offset.clamp(-120, 0);
+    // A day picked out of the daily chart belongs to the window it was picked
+    // in. Carrying it into another month leaves the totals showing one
+    // Tuesday in September under a heading that says July, which is the one
+    // state the whole selection mechanism is supposed to make impossible.
+    // Every other way of changing the window already clears it.
+    ref.read(selectedDayProvider.notifier).state = null;
   }
 
   @override
@@ -163,13 +191,25 @@ class _Bars extends ConsumerWidget {
         ),
         barTouchData: BarTouchData(
           enabled: true,
+          // Nothing to pop on touch: the bars carry no tooltip, and the
+          // built-in handling would only compete with the tap below.
+          handleBuiltInTouches: false,
+          // Twenty-four rods seven pixels wide on a phone. The target has to
+          // reach past the ink or the month is hit by luck.
+          touchExtraThreshold: const EdgeInsets.symmetric(horizontal: 6),
           touchTooltipData: BarTouchTooltipData(
             getTooltipColor: (_) => Colors.transparent,
             tooltipPadding: EdgeInsets.zero,
             getTooltipItem: (_, _, _, _) => null,
           ),
           touchCallback: (event, response) {
-            if (!event.isInterestedForInteractions) return;
+            // `isInterestedForInteractions` is true for several events inside
+            // one gesture: a single tap produces a pan-down and a tap-down.
+            // Here that meant navigating twice per tap, which happens to be
+            // idempotent and so left no symptom, but it is the same mistake
+            // that made the daily chart respond only to a long press. Only
+            // the end of the gesture counts, and it fires exactly once.
+            if (event is! FlTapUpEvent && event is! FlLongPressEnd) return;
             final index = response?.spot?.touchedBarGroupIndex;
             if (index == null || index < 0 || index >= months.length) return;
             _open(ref, months[index]);

@@ -176,8 +176,8 @@
   "autoBackupNow": "Fă unul acum",
   "autoBackupDone": "Backup făcut",
   "autoBackupCount": "{count, plural, one{o tranzacție} few{{count} tranzacții} other{{count} de tranzacții}}",
-  "autoBackupWarnTitle": "Rămâne pe telefon",
-  "autoBackupWarnBody": "Backupurile automate te apără de ștergeri greșite, dar nu și de pierderea telefonului. Pentru asta, trimite-ți din când în când un backup complet pe mail sau pe Drive.",
+  "autoBackupWarnTitle": "Unde ajung datele tale",
+  "autoBackupWarnBody": "Snapshoturile zilnice de mai jos stau în aplicație și dispar odată cu ea dacă o dezinstalezi. Ca să rămână ceva pe telefon, alege un folder. Ca să se restaureze singur, pornește backupul Google.",
   "restoreFrom": "Restaurează din acesta",
   "@autoBackupLast": {
     "placeholders": {
@@ -203,5 +203,30 @@
   "twelveMonths": "Ultimele 12 luni",
   "twelveMonthsSub": "Apasă pe o lună ca s-o deschizi",
   "monthlyAverage": "Medie lunară",
-  "noHistoryYet": "Prea puțin istoric pentru o comparație pe luni."
+  "noHistoryYet": "Prea puțin istoric pentru o comparație pe luni.",
+  "folderBackup": "Folder pe telefon",
+  "folderBackupNone": "Nu ai ales unul încă",
+  "folderBackupPick": "Alege un folder",
+  "folderBackupChange": "Schimbă folderul",
+  "folderBackupWhy": "Fișierele scrise aici rămân pe telefon chiar dacă dezinstalezi aplicația. Le vezi în Fișiere și le poți copia pe calculator sau trimite pe mail.",
+  "folderBackupLost": "Nu mai am acces la folder",
+  "folderBackupLostBody": "L-ai mutat, l-ai șters, sau ai reinstalat aplicația. Alege-l din nou ca backupurile să continue.",
+  "folderBackupEmpty": "Niciun backup scris în folder încă",
+  "googleBackup": "Backup în contul Google",
+  "googleBackupBody": "Singurul care se restaurează singur, fără niciun pas din partea ta, atunci când reinstalezi aplicația pe același cont Google. Se pornește din setările telefonului — aplicația nu poate face asta în locul tău.",
+  "googleBackupOpen": "Deschide setările telefonului",
+  "restoreFromFolder": "Restaurează din folder",
+  "hadAppBefore": "Ai mai folosit Tally?",
+  "hadAppBeforeBody": "Dacă ai un folder cu backupuri de la o instalare anterioară, arată-mi-l și îți aduc datele înapoi.",
+  "findMyBackup": "Caută backupul meu",
+  "noBackupsInFolder": "Nu am găsit niciun backup în folderul ales.",
+  "restoreFoundBody": "Îți aduc înapoi tranzacțiile, categoriile și plățile recurente din el. Nu ai nimic înregistrat acum, deci nu se pierde nimic.",
+  "foundBackups": "{count, plural, one{Am găsit un backup} few{Am găsit {count} backupuri} other{Am găsit {count} de backupuri}}",
+  "@foundBackups": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  }
 }

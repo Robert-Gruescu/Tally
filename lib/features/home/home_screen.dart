@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
+import '../../core/backup.dart';
+import '../../core/backup_folder.dart';
 import '../../core/db/database.dart';
 import '../../core/period.dart';
 import '../../core/theme.dart';
@@ -260,7 +262,17 @@ class _FlowStat extends StatelessWidget {
               decoration: BoxDecoration(color: color, shape: BoxShape.circle),
             ),
             const SizedBox(width: 7),
-            Text(label, style: theme.textTheme.bodySmall),
+            // The label is one word, but one word set at twice the size no
+            // longer fits half a narrow screen beside the dot. Allowed to
+            // shrink rather than to push the row off the edge.
+            Flexible(
+              child: Text(
+                label,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: theme.textTheme.bodySmall,
+              ),
+            ),
           ],
         ),
         const SizedBox(height: 5),
@@ -332,13 +344,93 @@ class _DayHeaderRow extends ConsumerWidget {
   }
 }
 
-class _EmptyState extends StatelessWidget {
+/// The empty ledger, and the one moment it is worth asking about a backup.
+///
+/// A reinstalled app looks exactly like a new one: same empty list, same
+/// zeroes. Android will not let it read what the previous installation left
+/// behind, so if nobody asks, a folder full of the user's records sits on the
+/// phone untouched while they start typing again from scratch.
+///
+/// The question is phrased so someone genuinely new can read it once and move
+/// on, and it appears only while there is nothing recorded.
+class _EmptyState extends ConsumerStatefulWidget {
   const _EmptyState({required this.l10n});
 
   final AppLocalizations l10n;
 
   @override
+  ConsumerState<_EmptyState> createState() => _EmptyStateState();
+}
+
+class _EmptyStateState extends ConsumerState<_EmptyState> {
+  bool _busy = false;
+
+  void _toast(String message) {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(SnackBar(content: Text(message)));
+  }
+
+  Future<void> _findBackup() async {
+    if (_busy) return;
+    setState(() => _busy = true);
+
+    final l10n = widget.l10n;
+    final prefs = ref.read(preferencesProvider);
+
+    final chosen = await BackupFolder.choose(prefs);
+    if (chosen == null) {
+      if (mounted) setState(() => _busy = false);
+      return;
+    }
+
+    final found = await BackupFolder.list(prefs);
+    if (!mounted) return;
+    setState(() => _busy = false);
+
+    if (found.isEmpty) {
+      // The folder is now remembered even so: tomorrow's snapshot goes there,
+      // which is the other half of what this button is for.
+      _toast(l10n.noBackupsInFolder);
+      return;
+    }
+
+    final newest = found.first;
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(l10n.foundBackups(found.length)),
+        // Not the usual "everything you have now will be replaced": this
+        // only ever runs while the ledger is empty, and warning someone
+        // about losing nothing is how a dialog teaches them not to read.
+        content: Text(l10n.restoreFoundBody),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: Text(l10n.cancel),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            child: Text(l10n.restoreAction),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true || !mounted) return;
+
+    try {
+      final summary =
+          await BackupFolder.restore(ref.read(databaseProvider), newest.uri);
+      _toast(l10n.restoreDone(summary.transactions));
+    } on BackupError catch (e) {
+      _toast(e.message);
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final l10n = widget.l10n;
     final theme = Theme.of(context);
     final money = theme.extension<MoneyColors>()!;
 
@@ -361,6 +453,25 @@ class _EmptyState extends StatelessWidget {
           OutlinedButton(
             onPressed: () => showAddTransactionSheet(context),
             child: Text(l10n.addExpense),
+          ),
+          const SizedBox(height: 40),
+          Divider(color: money.hairline, height: 1),
+          const SizedBox(height: 24),
+          Text(
+            l10n.hadAppBefore,
+            style: theme.textTheme.titleSmall,
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 6),
+          Text(
+            l10n.hadAppBeforeBody,
+            style: theme.textTheme.bodySmall,
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 16),
+          TextButton(
+            onPressed: _busy ? null : _findBackup,
+            child: Text(l10n.findMyBackup),
           ),
         ],
       ),

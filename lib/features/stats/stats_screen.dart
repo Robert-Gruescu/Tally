@@ -136,22 +136,66 @@ class _Headline extends ConsumerWidget {
           style: theme.textTheme.displayMedium,
         ),
         const SizedBox(height: 16),
-        Row(
-          children: [
-            if (change != null) ...[
-              _Trend(change: change, money: money),
-              const SizedBox(width: 14),
-              Container(width: 1, height: 14, color: money.hairline),
-              const SizedBox(width: 14),
-            ],
-            Text(
-              l10n.dailyAverageValue(
-                Money.format(average, currency: currency, showDecimals: false),
-              ),
-              style: theme.textTheme.bodySmall,
-            ),
-          ],
+        _TrendAndAverage(
+          change: change,
+          money: money,
+          average: l10n.dailyAverageValue(
+            Money.format(average, currency: currency, showDecimals: false),
+          ),
         ),
+      ],
+    );
+  }
+}
+
+/// "+18% față de perioada anterioară · 84 lei pe zi în medie".
+///
+/// Two full sentences side by side is comfortable at the default type size and
+/// impossible at twice it, where the pair wants some five hundred pixels on a
+/// three hundred pixel screen. Rather than truncate either one — both are
+/// sentences, and half a sentence is worth less than none — the row becomes a
+/// column once the text is large enough to need it.
+class _TrendAndAverage extends StatelessWidget {
+  const _TrendAndAverage({
+    required this.change,
+    required this.money,
+    required this.average,
+  });
+
+  final double? change;
+  final MoneyColors money;
+  final String average;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    // Measured against the size body copy actually renders at, so the decision
+    // follows the reader's own setting rather than a guess about the device.
+    final stacked = MediaQuery.textScalerOf(context).scale(13) > 17;
+
+    final averageText = Text(average, style: theme.textTheme.bodySmall);
+
+    if (change == null) return averageText;
+
+    if (stacked) {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _Trend(change: change!, money: money),
+          const SizedBox(height: 6),
+          averageText,
+        ],
+      );
+    }
+
+    return Row(
+      children: [
+        _Trend(change: change!, money: money),
+        const SizedBox(width: 14),
+        Container(width: 1, height: 14, color: money.hairline),
+        const SizedBox(width: 14),
+        Flexible(child: averageText),
       ],
     );
   }
@@ -180,12 +224,14 @@ class _Trend extends StatelessWidget {
           color: color,
         ),
         const SizedBox(width: 4),
-        Text(
-          l10n.comparedToPrevious(change.abs().toStringAsFixed(0)),
-          style: Theme.of(context)
-              .textTheme
-              .bodySmall
-              ?.copyWith(color: color, fontWeight: FontWeight.w500),
+        Flexible(
+          child: Text(
+            l10n.comparedToPrevious(change.abs().toStringAsFixed(0)),
+            style: Theme.of(context)
+                .textTheme
+                .bodySmall
+                ?.copyWith(color: color, fontWeight: FontWeight.w500),
+          ),
         ),
       ],
     );

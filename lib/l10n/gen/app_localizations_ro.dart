@@ -379,11 +379,11 @@ class AppLocalizationsRo extends AppLocalizations {
   }
 
   @override
-  String get autoBackupWarnTitle => 'Rămâne pe telefon';
+  String get autoBackupWarnTitle => 'Unde ajung datele tale';
 
   @override
   String get autoBackupWarnBody =>
-      'Backupurile automate te apără de ștergeri greșite, dar nu și de pierderea telefonului. Pentru asta, trimite-ți din când în când un backup complet pe mail sau pe Drive.';
+      'Snapshoturile zilnice de mai jos stau în aplicație și dispar odată cu ea dacă o dezinstalezi. Ca să rămână ceva pe telefon, alege un folder. Ca să se restaureze singur, pornește backupul Google.';
 
   @override
   String get restoreFrom => 'Restaurează din acesta';
@@ -420,4 +420,72 @@ class AppLocalizationsRo extends AppLocalizations {
 
   @override
   String get noHistoryYet => 'Prea puțin istoric pentru o comparație pe luni.';
+
+  @override
+  String get folderBackup => 'Folder pe telefon';
+
+  @override
+  String get folderBackupNone => 'Nu ai ales unul încă';
+
+  @override
+  String get folderBackupPick => 'Alege un folder';
+
+  @override
+  String get folderBackupChange => 'Schimbă folderul';
+
+  @override
+  String get folderBackupWhy =>
+      'Fișierele scrise aici rămân pe telefon chiar dacă dezinstalezi aplicația. Le vezi în Fișiere și le poți copia pe calculator sau trimite pe mail.';
+
+  @override
+  String get folderBackupLost => 'Nu mai am acces la folder';
+
+  @override
+  String get folderBackupLostBody =>
+      'L-ai mutat, l-ai șters, sau ai reinstalat aplicația. Alege-l din nou ca backupurile să continue.';
+
+  @override
+  String get folderBackupEmpty => 'Niciun backup scris în folder încă';
+
+  @override
+  String get googleBackup => 'Backup în contul Google';
+
+  @override
+  String get googleBackupBody =>
+      'Singurul care se restaurează singur, fără niciun pas din partea ta, atunci când reinstalezi aplicația pe același cont Google. Se pornește din setările telefonului — aplicația nu poate face asta în locul tău.';
+
+  @override
+  String get googleBackupOpen => 'Deschide setările telefonului';
+
+  @override
+  String get restoreFromFolder => 'Restaurează din folder';
+
+  @override
+  String get hadAppBefore => 'Ai mai folosit Tally?';
+
+  @override
+  String get hadAppBeforeBody =>
+      'Dacă ai un folder cu backupuri de la o instalare anterioară, arată-mi-l și îți aduc datele înapoi.';
+
+  @override
+  String get findMyBackup => 'Caută backupul meu';
+
+  @override
+  String get noBackupsInFolder => 'Nu am găsit niciun backup în folderul ales.';
+
+  @override
+  String get restoreFoundBody =>
+      'Îți aduc înapoi tranzacțiile, categoriile și plățile recurente din el. Nu ai nimic înregistrat acum, deci nu se pierde nimic.';
+
+  @override
+  String foundBackups(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Am găsit $count de backupuri',
+      few: 'Am găsit $count backupuri',
+      one: 'Am găsit un backup',
+    );
+    return '$_temp0';
+  }
 }

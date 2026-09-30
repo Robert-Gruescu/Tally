@@ -373,7 +373,18 @@ class _ChartEmpty extends StatelessWidget {
         ),
         Container(height: 1, color: money.hairline),
         const SizedBox(height: 12),
-        Text(message, style: theme.textTheme.bodySmall),
+        // The chart box is a fixed height, so at large text sizes this
+        // sentence is the thing that runs out the bottom of it. Two lines and
+        // then an ellipsis: the stubs and the baseline above are what carry
+        // the meaning, and the sentence only names it.
+        Flexible(
+          child: Text(
+            message,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+            style: theme.textTheme.bodySmall,
+          ),
+        ),
       ],
     );
   }
