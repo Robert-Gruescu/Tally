@@ -50,7 +50,11 @@ app.*.map.json
 # Nimic din ce explică arhitectura nu intră în repository. Codul rămâne singura
 # sursă de adevăr despre cum funcționează aplicația, iar o explicație
 # versionată alături de el ajunge inevitabil să îl contrazică.
-/docs/
+/docs/*
+
+# Excepție: capturile din README. Sunt parte din pagina proiectului, nu
+# explicații despre arhitectură — fără ele README-ul de pe GitHub e gol.
+!/docs/screenshots/
 
 # Documente Word oriunde în proiect, chiar și în afara docs/.
 # Sunt arhive binare: git nu poate face diff pe ele, iar fiecare salvare ar
