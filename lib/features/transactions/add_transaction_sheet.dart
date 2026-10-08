@@ -127,13 +127,20 @@ class _AddTransactionSheetState extends ConsumerState<AddTransactionSheet> {
   }
 
   Future<void> _pickDate() async {
+    final now = DateTime.now();
     final picked = await showDatePicker(
       context: context,
       initialDate: _date,
       firstDate: DateTime(2015),
-      // No future-dated spending: it is almost always a typo, and it corrupts
-      // "this month" totals in a way that is hard for a user to diagnose.
-      lastDate: DateTime.now(),
+      // A year ahead. This used to stop at today, on the grounds that a future
+      // date is almost always a typo. It is also how you write down the rent
+      // you are about to pay or the money you know is coming, and refusing it
+      // left no way to see how the month was going to end.
+      //
+      // The cost is that the balance now counts money that has not moved yet,
+      // so anything dated ahead is marked as such in the ledger rather than
+      // sitting there looking like it already happened.
+      lastDate: DateTime(now.year + 1, now.month, now.day),
       locale: const Locale('ro'),
     );
     if (picked != null) {
@@ -703,12 +710,18 @@ class _DateChip extends StatelessWidget {
     final isYesterday = date.year == yesterday.year &&
         date.month == yesterday.month &&
         date.day == yesterday.day;
+    final tomorrow = today.add(const Duration(days: 1));
+    final isTomorrow = date.year == tomorrow.year &&
+        date.month == tomorrow.month &&
+        date.day == tomorrow.day;
 
     final label = isToday
         ? l10n.today
         : isYesterday
             ? l10n.yesterday
-            : DateFormat('d MMM', 'ro_RO').format(date);
+            : isTomorrow
+                ? l10n.tomorrow
+                : DateFormat('d MMM', 'ro_RO').format(date);
 
     return ActionChip(
       onPressed: onTap,

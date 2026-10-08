@@ -52,7 +52,7 @@ class MoneyText extends StatelessWidget {
   final TextAlign? textAlign;
 
   /// Renders the currency word in the muted text colour instead of the value
-  /// colour. A red "lei" implies the currency itself is the bad news.
+  /// colour. A red "RON" implies the currency itself is the bad news.
   final bool mutedCurrency;
 
   @override

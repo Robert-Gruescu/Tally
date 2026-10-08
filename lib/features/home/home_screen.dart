@@ -369,12 +369,19 @@ class _DayHeaderRow extends ConsumerWidget {
 
     final today = DateRange.today();
     final yesterday = DateTime(today.year, today.month, today.day - 1);
+    final tomorrow = DateTime(today.year, today.month, today.day + 1);
+    // Anything dated ahead is money that has not moved. It still counts in the
+    // balance, because planning the month is the whole reason for entering it,
+    // but it must not sit in the ledger looking like it already happened.
+    final upcoming = day.isAfter(today);
 
     final String label;
     if (day == today) {
       label = l10n.today;
     } else if (day == yesterday) {
       label = l10n.yesterday;
+    } else if (day == tomorrow) {
+      label = l10n.tomorrow;
     } else {
       final formatted = DateFormat('EEEE, d MMMM', 'ro_RO').format(day);
       label = formatted[0].toUpperCase() + formatted.substring(1);
@@ -385,10 +392,42 @@ class _DayHeaderRow extends ConsumerWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(
-            label,
-            style: theme.textTheme.labelMedium?.copyWith(color: money.muted),
+          Flexible(
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Flexible(
+                  child: Text(
+                    label,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: theme.textTheme.labelMedium
+                        ?.copyWith(color: money.muted),
+                  ),
+                ),
+                if (upcoming) ...[
+                  const SizedBox(width: 8),
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 7, vertical: 2),
+                    decoration: BoxDecoration(
+                      color: theme.colorScheme.primary
+                          .withValues(alpha: 0.12),
+                      borderRadius: BorderRadius.circular(999),
+                    ),
+                    child: Text(
+                      l10n.upcoming,
+                      style: theme.textTheme.labelSmall?.copyWith(
+                        color: theme.colorScheme.primary,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ],
+              ],
+            ),
           ),
+          const SizedBox(width: 10),
           MoneyText(
             minor: netMinor,
             currency: currency,

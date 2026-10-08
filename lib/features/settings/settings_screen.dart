@@ -204,7 +204,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           controller: controller,
           autofocus: true,
           maxLength: 6,
-          decoration: const InputDecoration(hintText: 'lei', counterText: ''),
+          decoration: const InputDecoration(hintText: 'RON', counterText: ''),
           onSubmitted: (value) => Navigator.of(context).pop(value),
         ),
         actions: [

@@ -19,13 +19,31 @@ final preferencesProvider = Provider<SharedPreferences>(
 // ------------------------------------------------------------------ settings
 
 const _currencyKey = 'currency_symbol';
-const _defaultCurrency = 'lei';
+const _defaultCurrency = 'RON';
 
-/// The currency symbol is user data, not a constant. Hardcoding "lei" is what
-/// makes an app unpublishable outside one country later.
+/// What the old default was, so phones carrying it can be moved across once.
+const _retiredDefault = 'lei';
+
+/// The currency symbol is user data, not a constant. Hardcoding one country's
+/// currency is what makes an app unpublishable anywhere else later.
 class CurrencyNotifier extends StateNotifier<String> {
-  CurrencyNotifier(this._prefs)
-      : super(_prefs.getString(_currencyKey) ?? _defaultCurrency);
+  CurrencyNotifier(this._prefs) : super(_read(_prefs)) {
+    if (_prefs.getString(_currencyKey) == _retiredDefault) {
+      _prefs.setString(_currencyKey, _defaultCurrency);
+    }
+  }
+
+  /// Anyone still on the old default moves to the new one.
+  ///
+  /// It cannot be told apart from someone who deliberately typed "lei", which
+  /// is the price of having shipped a default and then changing it. The symbol
+  /// is one tap to set back in Settings, and leaving half the installs on the
+  /// old spelling would be the worse outcome.
+  static String _read(SharedPreferences prefs) {
+    final stored = prefs.getString(_currencyKey);
+    if (stored == null || stored == _retiredDefault) return _defaultCurrency;
+    return stored;
+  }
 
   final SharedPreferences _prefs;
 

@@ -72,6 +72,12 @@ class AppLocalizationsRo extends AppLocalizations {
   String get yesterday => 'Ieri';
 
   @override
+  String get tomorrow => 'Mâine';
+
+  @override
+  String get upcoming => 'urmează';
+
+  @override
   String get save => 'Salvează';
 
   @override

@@ -220,6 +220,18 @@ abstract class AppLocalizations {
   /// **'Ieri'**
   String get yesterday;
 
+  /// No description provided for @tomorrow.
+  ///
+  /// In ro, this message translates to:
+  /// **'Mâine'**
+  String get tomorrow;
+
+  /// No description provided for @upcoming.
+  ///
+  /// In ro, this message translates to:
+  /// **'urmează'**
+  String get upcoming;
+
   /// No description provided for @save.
   ///
   /// In ro, this message translates to:
