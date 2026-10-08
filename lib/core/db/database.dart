@@ -247,6 +247,18 @@ class AppDatabase extends _$AppDatabase {
     return row.read(count) ?? 0;
   }
 
+  /// Only money that has actually moved by [asOf].
+  ///
+  /// A row dated ahead is a plan, not a fact. It belongs in the ledger, where
+  /// it is marked as still to come, and it must stay out of every total until
+  /// its day arrives: a balance that already counts next week's rent is not a
+  /// balance, it is a forecast wearing a balance's clothes.
+  ///
+  /// The cutoff is passed in rather than read from the clock here, so the
+  /// tests can stand at a chosen moment and watch a row cross over.
+  Expression<bool> _settled(DateTime? asOf) =>
+      transactions.spentAt.isSmallerOrEqualValue(asOf ?? DateTime.now());
+
   // -------------------------------------------------------------- transactions
 
   Future<int> insertTxn(TransactionsCompanion txn) =>
@@ -258,6 +270,10 @@ class AppDatabase extends _$AppDatabase {
       (delete(transactions)..where((t) => t.id.equals(id))).go();
 
   /// Transactions in `[from, to)` with their category, newest first.
+  ///
+  /// Deliberately not filtered by [_settled]: the ledger is the one place a
+  /// planned payment has to be visible, and it is marked there rather than
+  /// hidden. Every total is filtered; this is not.
   Stream<List<TxnWithCategory>> watchTransactions({
     required DateTime from,
     required DateTime to,
@@ -290,12 +306,14 @@ class AppDatabase extends _$AppDatabase {
   Stream<PeriodSummary> watchSummary({
     required DateTime from,
     required DateTime to,
+    DateTime? asOf,
   }) {
     final total = transactions.amountMinor.sum();
     final query = selectOnly(transactions)
       ..addColumns([transactions.kind, total])
       ..where(transactions.spentAt.isBiggerOrEqualValue(from) &
-          transactions.spentAt.isSmallerThanValue(to))
+          transactions.spentAt.isSmallerThanValue(to) &
+          _settled(asOf))
       ..groupBy([transactions.kind]);
 
     return query.watch().map((rows) {
@@ -323,6 +341,7 @@ class AppDatabase extends _$AppDatabase {
     required DateTime from,
     required DateTime to,
     required TxKind kind,
+    DateTime? asOf,
   }) {
     final total = transactions.amountMinor.sum();
     final query = select(transactions).join([
@@ -331,7 +350,8 @@ class AppDatabase extends _$AppDatabase {
       ..addColumns([total])
       ..where(transactions.kind.equalsValue(kind) &
           transactions.spentAt.isBiggerOrEqualValue(from) &
-          transactions.spentAt.isSmallerThanValue(to))
+          transactions.spentAt.isSmallerThanValue(to) &
+          _settled(asOf))
       ..groupBy([transactions.categoryId])
       ..orderBy([OrderingTerm.desc(total)]);
 
@@ -355,12 +375,15 @@ class AppDatabase extends _$AppDatabase {
   Stream<List<DailyTotal>> watchDailyExpenses({
     required DateTime from,
     required DateTime to,
+    DateTime? asOf,
   }) {
+    final cutoff = asOf ?? DateTime.now();
     final query = select(transactions)
       ..where((t) =>
           t.kind.equalsValue(TxKind.expense) &
           t.spentAt.isBiggerOrEqualValue(from) &
-          t.spentAt.isSmallerThanValue(to));
+          t.spentAt.isSmallerThanValue(to) &
+          t.spentAt.isSmallerOrEqualValue(cutoff));
 
     return query.watch().map((rows) {
       final byDay = <DateTime, int>{};
@@ -389,11 +412,14 @@ class AppDatabase extends _$AppDatabase {
   Stream<List<MonthTotal>> watchMonthlyTotals({
     required DateTime from,
     required DateTime to,
+    DateTime? asOf,
   }) {
+    final cutoff = asOf ?? DateTime.now();
     final query = select(transactions)
       ..where((t) =>
           t.spentAt.isBiggerOrEqualValue(from) &
-          t.spentAt.isSmallerThanValue(to));
+          t.spentAt.isSmallerThanValue(to) &
+          t.spentAt.isSmallerOrEqualValue(cutoff));
 
     return query.watch().map((rows) {
       final income = <DateTime, int>{};

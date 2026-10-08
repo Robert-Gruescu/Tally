@@ -67,7 +67,10 @@ class _RootShellState extends ConsumerState<RootShell> {
     // would otherwise not notice that it is now the 5th. Regenerating on
     // resume costs one query against a handful of rules.
     _lifecycle = AppLifecycleListener(
-      onResume: () => RecurrenceService.materialize(ref.read(databaseProvider)),
+      onResume: () {
+        RecurrenceService.materialize(ref.read(databaseProvider));
+        _refreshDatedTotals();
+      },
       // Also on the way out, not only on the way in. Startup alone would mean
       // everything entered today waits until tomorrow's launch to be saved,
       // and the day you actually need the snapshot is the day you did not
@@ -75,6 +78,26 @@ class _RootShellState extends ConsumerState<RootShell> {
       onHide: _snapshotIfDue,
       onPause: _snapshotIfDue,
     );
+  }
+
+  /// Recomputes everything that depends on what day it is.
+  ///
+  /// Totals exclude money that has not moved yet, and each stream decides what
+  /// "yet" means when it is first subscribed to. An app left open overnight
+  /// would therefore still be holding yesterday's cutoff, and a payment
+  /// planned for today would stay out of the balance until something else
+  /// happened to rebuild the screen.
+  void _refreshDatedTotals() {
+    ref
+      ..invalidate(summaryProvider)
+      ..invalidate(previousSummaryProvider)
+      ..invalidate(categoryTotalsProvider)
+      ..invalidate(monthlyTotalsProvider)
+      ..invalidate(dailyChartProvider)
+      ..invalidate(loggedDaysProvider)
+      // The window itself: "luna aceasta" has to mean the new month once the
+      // month has turned.
+      ..invalidate(dateRangeProvider);
   }
 
   /// Guarded by the same 24 hour interval, so backgrounding the app twenty

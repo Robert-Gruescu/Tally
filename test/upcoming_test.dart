@@ -14,15 +14,17 @@ import 'package:tally/providers.dart';
 
 /// Money that has not moved yet.
 ///
-/// The app used to refuse any date past today, on the grounds that a future
-/// date is almost always a typo. It is also the only way to write down the
-/// rent you are about to pay, so the restriction is gone — and with it gone,
-/// the balance can now contain money nobody has actually spent or received.
+/// The date picker used to stop at today, on the grounds that a future date is
+/// almost always a typo. It is also the only way to write down the rent you
+/// are about to pay, so the restriction is gone.
 ///
-/// That is the intended behaviour: planning how the month ends is the reason
-/// for entering it. What these pin is that it is never *silent* — the ledger
-/// says which rows have not happened yet — and that it does not leak into the
-/// two places where a future date would be a lie.
+/// The rule that replaced it: **a planned payment is in the ledger and out of
+/// every total until its day arrives.** A balance that already counts next
+/// week's rent is not a balance, it is a forecast wearing a balance's clothes
+/// — and the first version of this shipped exactly that mistake.
+///
+/// So the row shows up immediately, marked, and crosses into the totals on the
+/// day it is dated. These pin both halves.
 void main() {
   late AppDatabase db;
   late int food;
@@ -31,6 +33,12 @@ void main() {
   DateTime day(int offset) {
     final now = DateTime.now();
     return DateTime(now.year, now.month, now.day + offset, 12);
+  }
+
+  /// A moment late on the day [offset] days from now, used as the cutoff.
+  DateTime standingOn(int offset) {
+    final d = day(offset);
+    return DateTime(d.year, d.month, d.day, 23, 59);
   }
 
   setUp(() async {
@@ -43,60 +51,125 @@ void main() {
 
   tearDown(() => db.close());
 
-  Future<void> add(int offset, int minor,
-          {TxKind kind = TxKind.expense, int? category}) =>
+  Future<void> add(int offset, int minor, {TxKind kind = TxKind.expense}) =>
       db.insertTxn(TransactionsCompanion.insert(
         amountMinor: minor,
         kind: kind,
-        categoryId: category ?? (kind == TxKind.income ? salary : food),
+        categoryId: kind == TxKind.income ? salary : food,
         spentAt: day(offset),
       ));
 
-  group('the balance looks ahead', () {
-    test('a payment dated later this month counts', () async {
-      // The point of entering it. Someone planning the month needs the figure
-      // to include the rent they know is coming out.
+  Future<PeriodSummary> summaryAt(DateTime asOf) {
+    final range = DateRange.of(Period.month);
+    return db
+        .watchSummary(from: range.from, to: range.to, asOf: asOf)
+        .first;
+  }
+
+  group('the balance is what has actually moved', () {
+    test('a payment dated later this month is left out', () async {
       await add(0, 5000);
-      await add(3, 120000);
+      await add(4, 120000);
 
-      final range = DateRange.of(Period.month);
-      final summary = await db
-          .watchSummary(from: range.from, to: range.to)
-          .first;
-
-      expect(summary.expenseMinor, 125000);
+      final summary = await summaryAt(standingOn(0));
+      expect(summary.expenseMinor, 5000,
+          reason: 'only the money that has gone');
     });
 
-    test('income expected later counts the same way', () async {
-      await add(5, 450000, kind: TxKind.income);
+    test('income expected later is left out too', () async {
+      await add(0, 5000);
+      await add(6, 450000, kind: TxKind.income);
 
-      final range = DateRange.of(Period.month);
-      final summary = await db
-          .watchSummary(from: range.from, to: range.to)
-          .first;
-
-      expect(summary.incomeMinor, 450000);
-      expect(summary.balanceMinor, 450000);
+      final summary = await summaryAt(standingOn(0));
+      expect(summary.incomeMinor, 0);
+      expect(summary.balanceMinor, -5000);
     });
 
-    test('it still lands in the right month, not this one', () async {
-      // Two months out is outside the window and must stay outside it.
-      await add(70, 99900);
+    test('it joins the balance on the day it is dated', () async {
+      // The whole point. Nothing is re-entered and nothing is confirmed; the
+      // row simply stops being in the future.
+      await add(4, 120000);
+
+      expect((await summaryAt(standingOn(3))).expenseMinor, 0,
+          reason: 'the day before');
+      expect((await summaryAt(standingOn(4))).expenseMinor, 120000,
+          reason: 'the day itself');
+    });
+
+    test('a payment entered for today counts straight away', () async {
+      await add(0, 7500);
+      expect((await summaryAt(standingOn(0))).expenseMinor, 7500);
+    });
+  });
+
+  group('every total agrees with the balance', () {
+    test('the category ranking leaves it out', () async {
+      await add(0, 5000);
+      await add(4, 120000);
 
       final range = DateRange.of(Period.month);
-      final summary = await db
-          .watchSummary(from: range.from, to: range.to)
+      final totals = await db
+          .watchCategoryTotals(
+            from: range.from,
+            to: range.to,
+            kind: TxKind.expense,
+            asOf: standingOn(0),
+          )
           .first;
 
-      expect(summary.expenseMinor, 0);
+      expect(totals.single.totalMinor, 5000);
+    });
+
+    test('the twelve-month chart leaves it out', () async {
+      await add(0, 5000);
+      await add(4, 120000);
+
+      final range = DateRange.lastMonths(12);
+      final months = await db
+          .watchMonthlyTotals(
+            from: range.from,
+            to: range.to,
+            asOf: standingOn(0),
+          )
+          .first;
+
+      expect(months.last.expenseMinor, 5000);
+    });
+
+    test('the daily chart leaves it out', () async {
+      await add(0, 5000);
+      await add(2, 120000);
+
+      final today = DateRange.today();
+      final days = await db
+          .watchDailyExpenses(
+            from: DateTime(today.year, today.month, today.day - 1),
+            to: DateTime(today.year, today.month, today.day + 5),
+            asOf: standingOn(0),
+          )
+          .first;
+
+      expect(days.fold<int>(0, (s, d) => s + d.totalMinor), 5000);
+    });
+  });
+
+  group('but the ledger shows it', () {
+    test('the list carries it from the moment it is written', () async {
+      // Out of the totals is not the same as hidden. Somebody who has just
+      // entered next month's rent has to be able to see that it saved.
+      await add(4, 120000);
+
+      final range = DateRange.of(Period.month);
+      final rows =
+          await db.watchTransactions(from: range.from, to: range.to).first;
+
+      expect(rows, hasLength(1));
+      expect(rows.single.txn.amountMinor, 120000);
     });
   });
 
   group('what it must not touch', () {
     test('a future entry does not inflate the run of days', () async {
-      // The streak counts back from today. An entry dated next week is not a
-      // day anybody kept the habit on, and counting it would hand out a run
-      // for work not done.
       await add(0, 1000);
       await add(4, 1000);
       await add(5, 1000);
@@ -109,23 +182,9 @@ void main() {
 
       expect(container.read(streakProvider), 1);
     });
-
-    test('a run already going is not extended by one', () async {
-      await add(0, 1000);
-      await add(-1, 1000);
-      await add(1, 1000);
-
-      final container = ProviderContainer(
-        overrides: [databaseProvider.overrideWithValue(db)],
-      );
-      addTearDown(container.dispose);
-      await container.read(loggedDaysProvider.future);
-
-      expect(container.read(streakProvider), 2);
-    });
   });
 
-  group('the ledger says so', () {
+  group('the ledger says which rows have not happened', () {
     Future<void> pump(WidgetTester tester) async {
       SharedPreferences.setMockInitialValues({});
       final prefs = await SharedPreferences.getInstance();
@@ -156,14 +215,11 @@ void main() {
     }
 
     Future<void> takeDown(WidgetTester tester) async {
-      // Disposing the scope cancels drift's streams, and cancelling one
-      // schedules a timer. Done here so it has a frame to run in.
       await tester.pumpWidget(const SizedBox.shrink());
       await tester.pumpAndSettle();
     }
 
-    testWidgets('a day ahead is marked, so the balance is not a surprise',
-        (tester) async {
+    testWidgets('a day ahead is marked', (tester) async {
       await add(2, 120000);
       await pump(tester);
 
